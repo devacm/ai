@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Links Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+        }
+
+        nav ul li {
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .parent-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .container-box {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .container-box h2 {
+            margin-bottom: 15px;
+        }
+
+        .link-list {
+            list-style: none;
+            margin-bottom: 15px;
+        }
+
+        .link-list li {
+            margin: 5px 0;
+        }
+
+        .link-list a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        .link-list a:hover {
+            text-decoration: underline;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .pagination button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .pagination button:hover {
+            background: #45a049;
+        }
+
+        .add-link {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .add-link button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .add-link button:hover {
+            background: #45a049;
+        }
+
+        .landscape {
+            background: white;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .landscape h3 {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dynamic Links</h1>
+        <nav>
+            <ul>
+                <li><a href="https://www.whatsapp.com">WhatsApp</a></li>
+                <li><a href="https://www.google.com">Google</a></li>
+                <li><a href="https://www.youtube.com">YouTube</a></li>
+                <li><a href="https://www.deepseek.com">Deepseek</a></li>
+                <li><a href="https://www.openai.com">ChatGPT</a></li>
+                <li><a href="https://www.gemini.com">Gemini</a></li>
+                <li><a href="https://www.ideogram.ai">Ideogram</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="parent-container">
+            <div class="container-box">
+                <h2>Saved Links</h2>
+                <ul class="link-list" id="saved-links">
+                    <li><a href="https://www.wikipedia.org">Wikipedia</a></li>
+                    <li><a href="https://www.github.com">GitHub</a></li>
+                    <li><a href="https://www.stackoverflow.com">Stack Overflow</a></li>
+                </ul>
+                <div class="pagination" id="pagination">
+                    <button onclick="changePage(-1)">&laquo; Previous</button>
+                    <button onclick="changePage(1)">Next &raquo;</button>
+                </div>
+            </div>
+            <div class="container-box">
+                <h2>Default Links</h2>
+                <ul class="link-list">
+                    <li><a href="https://www.mozilla.org">Mozilla</a></li>
+                    <li><a href="https://www.python.org">Python</a></li>
+                    <li><a href="https://www.reddit.com">Reddit</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="add-link">
+            <button onclick="addLink()">Add Link</button>
+        </div>
+
+        <div class="landscape">
+            <h3>Additional Links</h3>
+            <ul class="link-list">
+                <li><a href="https://www.medium.com">Medium</a></li>
+                <li><a href="https://www.quora.com">Quora</a></li>
+                <li><a href="https://www.twitch.tv">Twitch</a></li>
+            </ul>
+        </div>
+    </main>
+
+    <script>
+        let savedLinks = [
+            "https://www.wikipedia.org",
+            "https://www.github.com",
+            "https://www.stackoverflow.com"
+        ];
+        let currentPage = 1;
+
+        function addLink() {
+            const newLink = prompt("Enter the URL of the link:");
+            if (newLink) {
+                savedLinks.push(newLink);
+                alert("Link added successfully!");
+                renderLinks();
+            }
+        }
+
+        function renderLinks() {
+            const linksPerPage = 3;
+            const startIndex = (currentPage - 1) * linksPerPage;
+            const endIndex = startIndex + linksPerPage;
+            const visibleLinks = savedLinks.slice(startIndex, endIndex);
+
+            const savedLinksContainer = document.getElementById("saved-links");
+            savedLinksContainer.innerHTML = "";
+
+            visibleLinks.forEach(link => {
+                const li = document.createElement("li");
+                li.innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
+                savedLinksContainer.appendChild(li);
+            });
+        }
+
+        function changePage(direction) {
+            const totalPages = Math.ceil(savedLinks.length / 3);
+            currentPage = Math.max(1, Math.min(currentPage + direction, totalPages));
+            renderLinks();
+        }
+
+        renderLinks();
+    </script>
+</body>
+</html>
