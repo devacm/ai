@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinkHub - Smart Link Manager</title>
+    <title>LinkHub - Smart Bookmark Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Base Styles */
         * {
             margin: 0;
             padding: 0;
@@ -16,25 +18,34 @@
             --primary-color: #2c3e50;
             --accent-color: #3498db;
             --background: #f5f6fa;
+            --card-bg: #ffffff;
         }
 
         body {
             background: var(--background);
+            min-height: 100vh;
         }
 
         /* Header Styles */
         header {
-            background: white;
-            padding: 1rem 2%;
+            background: var(--card-bg);
+            padding: 1rem 5%;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 1rem;
         }
 
-        .brand {
-            font-size: 1.5rem;
-            font-weight: bold;
+        .website-name {
+            font-size: 1.8rem;
+            font-weight: 700;
             color: var(--primary-color);
         }
 
@@ -53,57 +64,66 @@
             color: var(--accent-color);
         }
 
-        /* Main Container */
-        .main-container {
+        /* Main Content */
+        .parent-container {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 2rem;
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 2rem auto;
+            padding: 2rem 5%;
         }
 
         /* Link Containers */
         .link-container {
-            background: white;
-            padding: 1.5rem;
+            background: var(--card-bg);
             border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
         }
 
         .link-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
         }
 
         .link-card {
+            display: flex;
+            align-items: center;
             padding: 1rem;
-            border: 1px solid #eee;
             border-radius: 8px;
+            background: var(--background);
             transition: transform 0.3s;
-            cursor: pointer;
+            text-decoration: none;
+            color: var(--primary-color);
         }
 
         .link-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .link-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 1rem;
+            border-radius: 50%;
         }
 
         /* Pagination */
         .pagination {
             display: flex;
             gap: 0.5rem;
+            justify-content: center;
             margin-top: 1rem;
         }
 
         .page-btn {
             padding: 0.5rem 1rem;
             border: none;
-            background: #eee;
-            cursor: pointer;
             border-radius: 5px;
+            background: var(--background);
+            cursor: pointer;
         }
 
         .page-btn.active {
@@ -111,218 +131,213 @@
             color: white;
         }
 
-        /* Add Link Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
+        /* Add Link Section */
+        .add-link-section {
+            text-align: center;
+            margin: 2rem 0;
         }
 
-        .modal-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 400px;
+        .add-btn {
+            padding: 0.8rem 2rem;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s;
         }
 
-        .modal input {
-            width: 100%;
-            padding: 0.8rem;
-            margin: 0.5rem 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        .add-btn:hover {
+            background: #2980b9;
         }
 
-        /* Landscape Containers */
-        .landscape-container {
-            background: white;
-            padding: 2rem;
-            margin: 2rem auto;
-            max-width: 1200px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .parent-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .link-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="brand">LinkHub</div>
-        <nav class="nav-links">
-            <a href="https://wa.me">WhatsApp</a>
-            <a href="https://google.com">Google</a>
-            <a href="https://youtube.com">YouTube</a>
-            <a href="https://deepseek.com">DeepSeek</a>
-            <a href="https://chat.openai.com">ChatGPT</a>
-            <a href="https://gemini.google.com">Gemini</a>
-            <a href="https://ideogram.ai">Ideogram</a>
-        </nav>
+        <div class="nav-top">
+            <div class="website-name">LinkHub</div>
+            <div class="nav-links">
+                <a href="https://web.whatsapp.com" target="_blank">WhatsApp</a>
+                <a href="https://google.com" target="_blank">Google</a>
+                <a href="https://youtube.com" target="_blank">YouTube</a>
+                <a href="https://deepseek.com" target="_blank">DeepSeek</a>
+                <a href="https://chat.openai.com" target="_blank">ChatGPT</a>
+                <a href="https://gemini.google.com" target="_blank">Gemini</a>
+                <a href="https://ideogram.ai" target="_blank">Ideogram</a>
+            </div>
+        </div>
     </header>
 
-    <div class="main-container">
-        <!-- User Links Section -->
+    <div class="parent-container">
+        <!-- Custom Links Section -->
         <div class="link-container">
             <h2>My Links</h2>
-            <button onclick="showAddModal()" style="margin: 1rem 0; padding: 0.8rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
-                Add Link +
-            </button>
-            <div class="link-grid" id="userLinks">
-                <!-- Default User Links -->
-                <div class="link-card" onclick="window.open('https://github.com', '_blank')">
-                    <h3>GitHub</h3>
-                    <p>Code hosting platform</p>
-                </div>
-                <div class="link-card" onclick="window.open('https://stackoverflow.com', '_blank')">
-                    <h3>Stack Overflow</h3>
-                    <p>Developer Q&A platform</p>
-                </div>
+            <div class="link-grid" id="custom-links">
+                <!-- Default Links -->
+                <a href="https://github.com" class="link-card" target="_blank">
+                    <img src="https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" class="link-icon" alt="GitHub">
+                    GitHub
+                </a>
+                <a href="https://stackoverflow.com" class="link-card" target="_blank">
+                    <img src="https://cdn.sstatic.net/Sites/stackoverflow/Img/apple-touch-icon.png" class="link-icon" alt="Stack Overflow">
+                    Stack Overflow
+                </a>
             </div>
-            <div class="pagination" id="pagination"></div>
+            <div class="pagination" id="pagination">
+                <button class="page-btn active">1</button>
+            </div>
+            <div class="add-link-section">
+                <button class="add-btn" onclick="addNewLink()">Add New Link</button>
+            </div>
         </div>
 
-        <!-- Developer Links Section -->
+        <!-- Recommended Links -->
         <div class="link-container">
-            <h2>Developer Picks</h2>
+            <h2>Recommended Tools</h2>
             <div class="link-grid">
-                <div class="link-card" onclick="window.open('https://codepen.io', '_blank')">
-                    <h3>CodePen</h3>
-                    <p>Frontend coding playground</p>
-                </div>
-                <div class="link-card" onclick="window.open('https://figma.com', '_blank')">
-                    <h3>Figma</h3>
-                    <p>Design collaboration tool</p>
-                </div>
-                <div class="link-card" onclick="window.open('https://npmjs.com', '_blank')">
-                    <h3>npm</h3>
-                    <p>JavaScript package manager</p>
-                </div>
+                <a href="https://figma.com" class="link-card" target="_blank">
+                    <img src="https://static.figma.com/app/icon/1/touch-180.png" class="link-icon" alt="Figma">
+                    Figma
+                </a>
+                <a href="https://notion.so" class="link-card" target="_blank">
+                    <img src="https://www.notion.so/images/favicon.ico" class="link-icon" alt="Notion">
+                    Notion
+                </a>
+                <a href="https://trello.com" class="link-card" target="_blank">
+                    <img src="https://trello.com/favicon.ico" class="link-icon" alt="Trello">
+                    Trello
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- Additional Landscape Containers -->
-    <div class="landscape-container">
-        <h2>Learning Resources</h2>
+    <!-- Additional Link Sections -->
+    <div class="link-container" style="margin: 0 5% 2rem 5%;">
+        <h2>Development Resources</h2>
         <div class="link-grid">
-            <div class="link-card" onclick="window.open('https://freecodecamp.org', '_blank')">
-                <h3>freeCodeCamp</h3>
-                <p>Free coding curriculum</p>
-            </div>
-            <div class="link-card" onclick="window.open('https://udemy.com', '_blank')">
-                <h3>Udemy</h3>
-                <p>Online courses platform</p>
-            </div>
-            <div class="link-card" onclick="window.open('https://mdn.io', '_blank')">
-                <h3>MDN Web Docs</h3>
-                <p>Web development reference</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Link Modal -->
-    <div class="modal" id="addModal">
-        <div class="modal-content">
-            <h2>Add New Link</h2>
-            <input type="url" id="linkUrl" placeholder="Enter URL (https://example.com)">
-            <input type="text" id="linkTitle" placeholder="Enter Link Title">
-            <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-                <button onclick="addNewLink()" style="background: var(--accent-color); color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 5px; cursor: pointer;">
-                    Add Link
-                </button>
-                <button onclick="hideAddModal()" style="background: #ccc; padding: 0.8rem 1.5rem; border: none; border-radius: 5px; cursor: pointer;">
-                    Cancel
-                </button>
-            </div>
+            <a href="https://codepen.io" class="link-card" target="_blank">
+                <img src="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico" class="link-icon" alt="CodePen">
+                CodePen
+            </a>
+            <a href="https://codesandbox.io" class="link-card" target="_blank">
+                <img src="https://codesandbox.io/favicon.ico" class="link-icon" alt="CodeSandbox">
+                CodeSandbox
+            </a>
+            <a href="https://replit.com" class="link-card" target="_blank">
+                <img src="https://replit.com/public/icons/favicon-196.png" class="link-icon" alt="Replit">
+                Replit
+            </a>
         </div>
     </div>
 
     <script>
         let currentPage = 1;
         const linksPerPage = 6;
-        let userLinks = [
-            { url: 'https://github.com', title: 'GitHub', description: 'Code hosting platform' },
-            { url: 'https://stackoverflow.com', title: 'Stack Overflow', description: 'Developer Q&A platform' }
-        ];
-
-        function showAddModal() {
-            document.getElementById('addModal').style.display = 'flex';
-        }
-
-        function hideAddModal() {
-            document.getElementById('addModal').style.display = 'none';
-        }
+        let customLinks = [];
 
         function addNewLink() {
-            const url = document.getElementById('linkUrl').value;
-            const title = document.getElementById('linkTitle').value;
+            const url = prompt('Enter website URL:');
+            if (!url) return;
             
-            if (url && title) {
-                userLinks.push({
-                    url: url,
-                    title: title,
-                    description: "Custom link added by user"
-                });
-                
-                updateUserLinksDisplay();
-                hideAddModal();
-                updatePagination();
-            }
+            const name = prompt('Enter website name:');
+            if (!name) return;
+
+            const newLink = {
+                url: url.startsWith('http') ? url : `https://${url}`,
+                name: name,
+                icon: `https://www.google.com/s2/favicons?domain=${url}&sz=64`
+            };
+
+            customLinks.push(newLink);
+            localStorage.setItem('customLinks', JSON.stringify(customLinks));
+            updateLinkDisplay();
         }
 
-        function updateUserLinksDisplay() {
+        function updateLinkDisplay() {
+            const container = document.getElementById('custom-links');
+            const pagination = document.getElementById('pagination');
+            
+            // Clear existing content
+            container.innerHTML = '';
+            pagination.innerHTML = '';
+
+            // Add default links to first page
+            if (currentPage === 1) {
+                container.innerHTML = `
+                    <a href="https://github.com" class="link-card" target="_blank">
+                        <img src="https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png" class="link-icon" alt="GitHub">
+                        GitHub
+                    </a>
+                    <a href="https://stackoverflow.com" class="link-card" target="_blank">
+                        <img src="https://cdn.sstatic.net/Sites/stackoverflow/Img/apple-touch-icon.png" class="link-icon" alt="Stack Overflow">
+                        Stack Overflow
+                    </a>
+                `;
+            }
+
+            // Calculate pagination
+            const totalPages = Math.ceil(customLinks.length / linksPerPage);
+            
+            // Create pagination buttons
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement('button');
+                button.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                button.textContent = i;
+                button.onclick = () => changePage(i);
+                pagination.appendChild(button);
+            }
+
+            // Add custom links for current page
             const start = (currentPage - 1) * linksPerPage;
             const end = start + linksPerPage;
-            const currentLinks = userLinks.slice(start, end);
-
-            const linksContainer = document.getElementById('userLinks');
-            linksContainer.innerHTML = '';
-
-            currentLinks.forEach(link => {
-                linksContainer.innerHTML += `
-                    <div class="link-card" onclick="window.open('${link.url}', '_blank')">
-                        <h3>${link.title}</h3>
-                        <p>${link.description}</p>
-                    </div>
+            
+            customLinks.slice(start, end).forEach(link => {
+                const linkElement = document.createElement('a');
+                linkElement.className = 'link-card';
+                linkElement.href = link.url;
+                linkElement.target = '_blank';
+                linkElement.innerHTML = `
+                    <img src="${link.icon}" class="link-icon" alt="${link.name}">
+                    ${link.name}
                 `;
+                container.appendChild(linkElement);
             });
         }
 
-        function updatePagination() {
-            const pageCount = Math.ceil(userLinks.length / linksPerPage);
-            const pagination = document.getElementById('pagination');
-            pagination.innerHTML = '';
-
-            for (let i = 1; i <= pageCount; i++) {
-                pagination.innerHTML += `
-                    <button class="page-btn ${i === currentPage ? 'active' : ''}" 
-                            onclick="currentPage = ${i}; updateUserLinksDisplay(); updatePagination()">
-                        ${i}
-                    </button>
-                `;
-            }
+        function changePage(page) {
+            currentPage = page;
+            updateLinkDisplay();
         }
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('addModal');
-            if (event.target === modal) {
-                hideAddModal();
+        // Load saved links on startup
+        window.onload = () => {
+            const savedLinks = localStorage.getItem('customLinks');
+            if (savedLinks) {
+                customLinks = JSON.parse(savedLinks);
+                updateLinkDisplay();
             }
-        }
-
-        // Initial setup
-        updateUserLinksDisplay();
-        updatePagination();
+        };
     </script>
         <div style="width: 90%; text-align: center; margin: auto;">
             <h2>Used Prompt to generate this site</h2><br>
-            <p>Now imagine a website. a static website. in which users see some default added links on the website. but users can add some of the website links also by clicking on the button 'Add link'. on the top nav of the website, we see the website name and some links like WhatsApp, google, YouTube, deepseek, ChatGPT, Gemini, and Ideogram. slightly down after the nav bar we see one parent container in which we have two containers first container contains all default links and bottom of the first container, we see pages to slide through pages of saved links. Default links will be shown on page 1 only and then the user can add custom links in consecutive pages. the second container contains links by default added by developers you can add specific links by your imagination. after this parent container, we look down and see more landscape containers containing more weblinks for users. websites all functionality should work perfectly. no button should be useless on the website.  </p> <br><br>
+            <p>Now imagine a website. a static website. in which users see some default added links on the website. but users can add some of the website links also by clicking on the button 'Add link'. on the top nav of the website, we see the website name and some links like WhatsApp, google, YouTube, deepseek, ChatGPT, Gemini, and Ideogram. slightly down after the nav bar we see one parent container in which we have two containers first container contains all default links and bottom of the first container, we see pages to slide through pages of saved links. Default links will be shown on page 1 only and then the user can add custom links in consecutive pages. the second container contains links by default added by developers you can add specific links by your imagination. after this parent container, we look down and see more landscape containers containing more weblinks for users. websites all functionality should work perfectly. no button should be useless on the website. Please note that you have to make the entire website responsive for all devices. Website should work perfectly in mobile, laptop, tablet and etc. </p> <br><br>
         </div>
 </body>
 </html>
