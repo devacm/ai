@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkHub - Smart Link Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --background: #f5f6fa;
+        }
+
+        body {
+            background: var(--background);
+        }
+
+        /* Header Styles */
+        header {
+            background: white;
+            padding: 1rem 2%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--primary-color);
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-color);
+        }
+
+        /* Main Container */
+        .main-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 2rem auto;
+        }
+
+        /* Link Containers */
+        .link-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .link-card {
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .link-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: #eee;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .page-btn.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* Add Link Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        /* Landscape Containers */
+        .landscape-container {
+            background: white;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">LinkHub</div>
+        <nav class="nav-links">
+            <a href="https://wa.me">WhatsApp</a>
+            <a href="https://google.com">Google</a>
+            <a href="https://youtube.com">YouTube</a>
+            <a href="https://deepseek.com">DeepSeek</a>
+            <a href="https://chat.openai.com">ChatGPT</a>
+            <a href="https://gemini.google.com">Gemini</a>
+            <a href="https://ideogram.ai">Ideogram</a>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <!-- User Links Section -->
+        <div class="link-container">
+            <h2>My Links</h2>
+            <button onclick="showAddModal()" style="margin: 1rem 0; padding: 0.8rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Add Link +
+            </button>
+            <div class="link-grid" id="userLinks">
+                <!-- Default User Links -->
+                <div class="link-card" onclick="window.open('https://github.com', '_blank')">
+                    <h3>GitHub</h3>
+                    <p>Code hosting platform</p>
+                </div>
+                <div class="link-card" onclick="window.open('https://stackoverflow.com', '_blank')">
+                    <h3>Stack Overflow</h3>
+                    <p>Developer Q&A platform</p>
+                </div>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+
+        <!-- Developer Links Section -->
+        <div class="link-container">
+            <h2>Developer Picks</h2>
+            <div class="link-grid">
+                <div class="link-card" onclick="window.open('https://codepen.io', '_blank')">
+                    <h3>CodePen</h3>
+                    <p>Frontend coding playground</p>
+                </div>
+                <div class="link-card" onclick="window.open('https://figma.com', '_blank')">
+                    <h3>Figma</h3>
+                    <p>Design collaboration tool</p>
+                </div>
+                <div class="link-card" onclick="window.open('https://npmjs.com', '_blank')">
+                    <h3>npm</h3>
+                    <p>JavaScript package manager</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Landscape Containers -->
+    <div class="landscape-container">
+        <h2>Learning Resources</h2>
+        <div class="link-grid">
+            <div class="link-card" onclick="window.open('https://freecodecamp.org', '_blank')">
+                <h3>freeCodeCamp</h3>
+                <p>Free coding curriculum</p>
+            </div>
+            <div class="link-card" onclick="window.open('https://udemy.com', '_blank')">
+                <h3>Udemy</h3>
+                <p>Online courses platform</p>
+            </div>
+            <div class="link-card" onclick="window.open('https://mdn.io', '_blank')">
+                <h3>MDN Web Docs</h3>
+                <p>Web development reference</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Link Modal -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <h2>Add New Link</h2>
+            <input type="url" id="linkUrl" placeholder="Enter URL (https://example.com)">
+            <input type="text" id="linkTitle" placeholder="Enter Link Title">
+            <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                <button onclick="addNewLink()" style="background: var(--accent-color); color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 5px; cursor: pointer;">
+                    Add Link
+                </button>
+                <button onclick="hideAddModal()" style="background: #ccc; padding: 0.8rem 1.5rem; border: none; border-radius: 5px; cursor: pointer;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const linksPerPage = 6;
+        let userLinks = [
+            { url: 'https://github.com', title: 'GitHub', description: 'Code hosting platform' },
+            { url: 'https://stackoverflow.com', title: 'Stack Overflow', description: 'Developer Q&A platform' }
+        ];
+
+        function showAddModal() {
+            document.getElementById('addModal').style.display = 'flex';
+        }
+
+        function hideAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
+        function addNewLink() {
+            const url = document.getElementById('linkUrl').value;
+            const title = document.getElementById('linkTitle').value;
+            
+            if (url && title) {
+                userLinks.push({
+                    url: url,
+                    title: title,
+                    description: "Custom link added by user"
+                });
+                
+                updateUserLinksDisplay();
+                hideAddModal();
+                updatePagination();
+            }
+        }
+
+        function updateUserLinksDisplay() {
+            const start = (currentPage - 1) * linksPerPage;
+            const end = start + linksPerPage;
+            const currentLinks = userLinks.slice(start, end);
+
+            const linksContainer = document.getElementById('userLinks');
+            linksContainer.innerHTML = '';
+
+            currentLinks.forEach(link => {
+                linksContainer.innerHTML += `
+                    <div class="link-card" onclick="window.open('${link.url}', '_blank')">
+                        <h3>${link.title}</h3>
+                        <p>${link.description}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function updatePagination() {
+            const pageCount = Math.ceil(userLinks.length / linksPerPage);
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            for (let i = 1; i <= pageCount; i++) {
+                pagination.innerHTML += `
+                    <button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="currentPage = ${i}; updateUserLinksDisplay(); updatePagination()">
+                        ${i}
+                    </button>
+                `;
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('addModal');
+            if (event.target === modal) {
+                hideAddModal();
+            }
+        }
+
+        // Initial setup
+        updateUserLinksDisplay();
+        updatePagination();
+    </script>
+</body>
+</html>
