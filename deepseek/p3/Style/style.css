@@ -1,0 +1,222 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+body::before{
+    content: '';
+    position: fixed;
+    width: 100%;
+    z-index: -1;
+    background: linear-gradient(45deg, blue, rgb(170, 0, 255));
+    top: 0;
+    left: 0;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    height: 100vh;
+}
+
+.mainCont{
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+
+.phone-window {
+    width: 300px;
+    height: 600px;
+    background: #fff;
+    position: relative;
+}
+
+.nav-bar {
+    background: #075e54;
+    color: white;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.user-info small {
+    font-size: 0.8em;
+    opacity: 0.8;
+}
+
+.message-area {
+    height: 460px;
+    overflow-y: auto;
+    padding: 10px;
+    background: #e5ddd5;
+    background-image: url("");
+}
+
+.message {
+    max-width: 80%;
+    margin: 10px 0;
+    padding: 8px 12px;
+    border-radius: 7px;
+    position: relative;
+    word-break: break-word;
+}
+
+.user1 {
+    background: #dcf8c6;
+    margin-left: auto;
+}
+
+.user2 {
+    background: white;
+}
+
+.time-stamp {
+    font-size: 0.7em;
+    color: #666;
+    float: right;
+    margin-left: 10px;
+}
+
+.selected {
+    border: 2px solid #34b7f1;
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 300px;
+    justify-content: center;
+    padding: 1rem 2rem;
+}
+
+button {
+    padding: 10px;
+    background: #075e54;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+input[type="text"], input[type="file"] {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.document-message {
+    background: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.image-message {
+    max-width: 200px;
+    border-radius: 5px;
+}
+   /* Add these new styles */
+   .quoted-message {
+    border-left: 3px solid #25d366;
+    padding-left: 8px;
+    margin-bottom: 5px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.quoted-message::before {
+    content: "";
+    position: absolute;
+    left: -15px;
+    top: -15px;
+    height: calc(100% + 10px);
+    border-left: 2px solid #25d366;
+}
+
+.reply-container {
+    position: relative;
+    margin-top: 20px;
+}
+
+.reply-indicator {
+    position: absolute;
+    left: -10px;
+    top: -15px;
+    bottom: -8px;
+    width: 2px;
+    background: #25d366;
+}
+ /* Updated reply styles */
+ .quoted-message {
+    border-left: 3px solid #25d366;
+    padding: 4px 8px;
+    margin: 6px 0 10px 0;
+    background: rgba(0,0,0,0.05);
+    border-radius: 4px 0 0 4px;
+    font-size: 0.9em;
+    color: #666;
+    max-width: 80%;
+    position: relative;
+    overflow: hidden;
+}
+
+.quoted-sender {
+    font-weight: bold;
+    color: #25d366;
+    font-size: 0.8em;
+    display: block;
+    margin-bottom: 2px;
+}
+.time-input-container {
+    display: flex;
+    gap: 5px;
+}
+#manualTime {
+    width: 70px;
+    text-transform: uppercase;
+}
+#manualPeriod {
+    width: 50px;
+}
+ /* Add message status styles */
+ .message-status {
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.status-sending {
+    color: #666;
+}
+
+.status-sent {
+    color: #666;
+}
+
+.status-delivered {
+    color: #666;
+}
+
+.status-read {
+    color: #34b7f1;
+}
+
+.status-selector {
+    margin: 10px 0;
+    padding: 5px;
+    border-radius: 5px;
+}

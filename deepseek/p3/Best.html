@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WhatsApp Chat Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .phone-window {
+            width: 300px;
+            height: 600px;
+            border: 10px solid #333;
+            border-radius: 30px;
+            background: #fff;
+            position: relative;
+        }
+
+        .nav-bar {
+            background: #075e54;
+            color: white;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-info small {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .message-area {
+            height: 460px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #e5ddd5;
+            background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h80v80H0V0zm10 10h60v60H10V10z' fill='%23a8a8a8' fill-opacity='0.1'/%3E%3C/svg%3E");
+        }
+
+        .message {
+            max-width: 80%;
+            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 7px;
+            position: relative;
+            word-break: break-word;
+        }
+
+        .user1 {
+            background: #dcf8c6;
+            margin-left: auto;
+        }
+
+        .user2 {
+            background: white;
+        }
+
+        .time-stamp {
+            font-size: 0.7em;
+            color: #666;
+            float: right;
+            margin-left: 10px;
+        }
+
+        .selected {
+            border: 2px solid #34b7f1;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 300px;
+        }
+
+        button {
+            padding: 10px;
+            background: #075e54;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="text"], input[type="file"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .document-message {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .image-message {
+            max-width: 200px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-window">
+        <div class="nav-bar">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAXElEQVR4nO2WQQqAMAwE/f9P8ygFj1K0pYvQwEMgM8mGEFgGg8FgMBgMBoPBYDAY3sADOAEX4AhsgC3lz8A+9W7AIdV2wCvVXj1/9Qx0Z6A7A90Z6M4A4wH7Cg2wDd3e1QAAAABJRU5ErkJggg==" 
+                 class="profile-pic" id="profilePic">
+            <div class="user-info">
+                <div id="userName">User</div>
+                <small id="lastSeen">last seen today</small>
+            </div>
+        </div>
+        <div class="message-area" id="messageArea"></div>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="messageInput" placeholder="Type message">
+        <button onclick="sendMessage('user1')">Send as User1</button>
+        <button onclick="sendMessage('user2')">Send as User2</button>
+        
+        <div>
+            <input type="file" id="imageUpload" accept="image/*" hidden>
+            <input type="file" id="docUpload" hidden>
+            <button onclick="document.getElementById('imageUpload').click()">Send Image</button>
+            <button onclick="document.getElementById('docUpload').click()">Send Document</button>
+        </div>
+
+        <button onclick="deleteMessage()">Delete Selected</button>
+        <button onclick="clearChats()">Clear Chats</button>
+        <button onclick="cleanAll()">Clean All</button>
+        
+        <input type="text" id="newName" placeholder="New username">
+        <button onclick="updateUsername()">Update Name</button>
+        
+        <input type="text" id="statusInput" placeholder="New status">
+        <button onclick="updateStatus()">Update Status</button>
+        
+        <input type="file" id="profileUpload" accept="image/*" hidden>
+        <button onclick="document.getElementById('profileUpload').click()">Upload Profile Pic</button>
+        
+        <div>
+            <button onclick="toggleTime(true)">Auto Time</button>
+            <button onclick="toggleTime(false)">Manual Time</button>
+            <input type="time" id="manualTime" disabled>
+        </div>
+        
+        <button onclick="downloadScreenshot()">Download Screenshot</button>
+        <button onclick="deselectMessage()" id="deselectBtn" style="display: none;">Deselect</button>
+    </div>
+
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script>
+        let messages = [];
+        let selectedMessage = null;
+        let autoTime = true;
+        let currentUser = 'User';
+        let lastSeenStatus = 'last seen today';
+
+        // Initialize
+        loadData();
+        updateUI();
+
+        // Event Listeners
+        document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+        document.getElementById('docUpload').addEventListener('change', handleDocUpload);
+        document.getElementById('profileUpload').addEventListener('change', updateProfilePic);
+        document.getElementById('manualTime').addEventListener('change', updateManualTime);
+
+        function sendMessage(sender) {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            if (!content) return;
+
+            const message = {
+                id: Date.now(),
+                sender,
+                type: 'text',
+                content,
+                time: getCurrentTime()
+            };
+
+            messages.push(message);
+            input.value = '';
+            updateUI();
+            saveData();
+        }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function() {
+                messages.push({
+                    id: Date.now(),
+                    sender: 'user1',
+                    type: 'image',
+                    content: reader.result,
+                    time: getCurrentTime()
+                });
+                updateUI();
+                saveData();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleDocUpload(e) {
+            const file = e.target.files[0];
+            messages.push({
+                id: Date.now(),
+                sender: 'user1',
+                type: 'document',
+                content: {
+                    name: file.name,
+                    size: (file.size/1024).toFixed(2) + ' KB'
+                },
+                time: getCurrentTime()
+            });
+            updateUI();
+            saveData();
+        }
+
+        function updateUI() {
+            const area = document.getElementById('messageArea');
+            area.innerHTML = messages.map(msg => `
+                <div class="message ${msg.sender} ${selectedMessage === msg.id ? 'selected' : ''}" 
+                     id="msg-${msg.id}" ondblclick="selectMessage(${msg.id})">
+                    ${msg.type === 'image' ? 
+                        `<img src="${msg.content}" class="image-message">` :
+                     msg.type === 'document' ?
+                        `<div class="document-message">
+                            📄 ${msg.content.name}<br>
+                            <small>${msg.content.size}</small>
+                        </div>` :
+                        msg.content}
+                    <span class="time-stamp">${msg.time}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('userName').textContent = currentUser;
+            document.getElementById('lastSeen').textContent = lastSeenStatus;
+        }
+
+        function selectMessage(id) {
+            if (selectedMessage === id) return;
+            selectedMessage = id;
+            document.getElementById('deselectBtn').style.display = 'block';
+            updateUI();
+        }
+
+        function deselectMessage() {
+            selectedMessage = null;
+            document.getElementById('deselectBtn').style.display = 'none';
+            updateUI();
+        }
+
+        function deleteMessage() {
+            messages = messages.filter(msg => msg.id !== selectedMessage);
+            deselectMessage();
+            saveData();
+        }
+
+        function clearChats() {
+            messages = [];
+            updateUI();
+            saveData();
+        }
+
+        function cleanAll() {
+            localStorage.clear();
+            currentUser = 'User';
+            lastSeenStatus = 'last seen today';
+            messages = [];
+            document.getElementById('profilePic').src = 'data:image/png;base64,iVBORw0...';
+            updateUI();
+        }
+
+        function updateUsername() {
+            const newName = document.getElementById('newName').value;
+            if (newName) {
+                currentUser = newName;
+                saveData();
+                updateUI();
+            }
+        }
+
+        function updateStatus() {
+            const status = document.getElementById('statusInput').value;
+            if (status) {
+                lastSeenStatus = status;
+                saveData();
+                updateUI();
+            }
+        }
+
+        function updateProfilePic(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function() {
+                document.getElementById('profilePic').src = reader.result;
+                saveData();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function toggleTime(auto) {
+            autoTime = auto;
+            document.getElementById('manualTime').disabled = auto;
+        }
+
+        function updateManualTime(e) {
+            if (!autoTime) {
+                // Update all messages time if needed
+            }
+        }
+
+        function getCurrentTime() {
+            return autoTime ? 
+                new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
+                document.getElementById('manualTime').value || '10:00 AM';
+        }
+
+        function downloadScreenshot() {
+            html2canvas(document.querySelector('.phone-window')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'whatsapp-chat.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        function saveData() {
+            const data = {
+                messages,
+                currentUser,
+                lastSeenStatus,
+                profilePic: document.getElementById('profilePic').src
+            };
+            localStorage.setItem('whatsappData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const data = JSON.parse(localStorage.getItem('whatsappData'));
+            if (data) {
+                messages = data.messages || [];
+                currentUser = data.currentUser || 'User';
+                lastSeenStatus = data.lastSeenStatus || 'last seen today';
+                document.getElementById('profilePic').src = data.profilePic || 'data:image/png;base64,iVBORw0...';
+            }
+        }
+    </script>
+</body>
+</html>
