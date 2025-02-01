@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic Tac Toe</title>
+  <style>
+    /* Reset and Base Styling */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background-color: #f0f2f5;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    
+    /* Main Container */
+    .container {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    
+    /* Heading */
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    
+    /* Tic Tac Toe Board */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+    
+    .cell {
+      background: #e9ecef;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      transition: background 0.3s;
+      border-radius: 4px;
+    }
+    
+    .cell:hover {
+      background: #dfe4ea;
+    }
+    
+    /* Status Message */
+    .status {
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      color: #555;
+    }
+    
+    /* Restart Button */
+    .restart-btn {
+      padding: 10px 20px;
+      font-size: 1rem;
+      color: #fff;
+      background: #007bff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .restart-btn:hover {
+      background: #0056b3;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .cell {
+        height: 80px;
+        font-size: 2rem;
+      }
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Tic Tac Toe</h1>
+    <div id="game-board" class="board">
+      <!-- Each cell is given a data-index for identifying its position -->
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
+    </div>
+    <div id="game-status" class="status"></div>
+    <button id="restart" class="restart-btn">Restart Game</button>
+  </div>
+
+  <script>
+    // Game variables and initial state
+    const cells = document.querySelectorAll('.cell');
+    const statusDisplay = document.getElementById('game-status');
+    const restartButton = document.getElementById('restart');
+    let board = Array(9).fill(null);  // Represents the 3x3 grid
+    let gameActive = true;
+    let currentPlayer = "X"; // Human plays as "X" and computer as "O"
+
+    // Winning combinations
+    const winningCombos = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ];
+
+    // Display initial message
+    statusDisplay.innerText = "Your turn! (X)";
+
+    // Function to check for a win
+    function checkWin(player) {
+      return winningCombos.some(combo => {
+        return combo.every(index => board[index] === player);
+      });
+    }
+
+    // Function to check for a tie
+    function checkTie() {
+      return board.every(cell => cell !== null);
+    }
+
+    // Handle human move
+    function handleCellClick(e) {
+      const index = e.target.getAttribute('data-index');
+
+      // If the cell is already occupied or game is not active, do nothing
+      if (board[index] || !gameActive) return;
+
+      // Place human mark ("X")
+      makeMove(index, currentPlayer);
+
+      // Check for win or tie after human move
+      if (checkWin(currentPlayer)) {
+        endGame(`You win!`);
+        return;
+      } else if (checkTie()) {
+        endGame(`It's a tie!`);
+        return;
+      }
+
+      // Switch to computer move after a brief delay for realism
+      gameActive = false;
+      setTimeout(() => {
+        computerMove();
+        gameActive = true;
+      }, 500);
+    }
+
+    // Place a move on the board and update UI
+    function makeMove(index, player) {
+      board[index] = player;
+      cells[index].innerText = player;
+    }
+
+    // Computer chooses a random available cell
+    function computerMove() {
+      const availableIndices = board
+        .map((cell, index) => cell === null ? index : null)
+        .filter(val => val !== null);
+
+      if (availableIndices.length === 0) return;
+
+      // Simple strategy: random move
+      const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+      makeMove(randomIndex, "O");
+
+      // Check for win or tie after computer move
+      if (checkWin("O")) {
+        endGame("Computer wins!");
+      } else if (checkTie()) {
+        endGame("It's a tie!");
+      } else {
+        statusDisplay.innerText = "Your turn! (X)";
+      }
+    }
+
+    // End the game and display a message
+    function endGame(message) {
+      gameActive = false;
+      statusDisplay.innerText = message;
+    }
+
+    // Restart the game: reset board and UI
+    function restartGame() {
+      board = Array(9).fill(null);
+      cells.forEach(cell => cell.innerText = "");
+      gameActive = true;
+      currentPlayer = "X";
+      statusDisplay.innerText = "Your turn! (X)";
+    }
+
+    // Event listeners for each cell and the restart button
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    restartButton.addEventListener('click', restartGame);
+  </script>
+</body>
+</html>
