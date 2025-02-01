@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin Truth or Dare</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .setup-screen, .game-screen, .menu-modal {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .active-screen {
+            display: block;
+            opacity: 1;
+        }
+
+        .player-setup, .truth-dare-setup {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .game-area {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+
+        #bottle {
+            position: absolute;
+            width: 80px;
+            height: 100px;
+            left: 110px;
+            top: 100px;
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+            z-index: 2;
+        }
+
+        .circle {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid #333;
+        }
+
+        .player-segment {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            left: 50%;
+            top: 0;
+            transform-origin: left bottom;
+        }
+
+        .player-name {
+            position: absolute;
+            transform-origin: center;
+            left: -30%;
+            bottom: 20px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        @media (max-width: 600px) {
+            .game-area {
+                width: 250px;
+                height: 250px;
+            }
+
+            #bottle {
+                left: 105px;
+                top: 75px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Setup Screens -->
+        <div class="setup-screen active-screen" id="playerSetup">
+            <div class="player-setup">
+                <h2>Add Players</h2>
+                <div id="playerInputs">
+                    <div class="input-group">
+                        <input type="text" placeholder="Player name">
+                        <button class="btn btn-danger" onclick="removePlayerField(this)">✕</button>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addPlayerField()">Add Player +</button>
+                <button class="btn btn-primary" onclick="savePlayers()" style="margin-left:10px">Next</button>
+            </div>
+        </div>
+
+        <div class="setup-screen" id="truthDareSetup">
+            <div class="truth-dare-setup">
+                <h2>Add Truth Questions</h2>
+                <div id="truthInputs">
+                    <div class="input-group">
+                        <input type="text" placeholder="Truth question">
+                        <button class="btn btn-danger" onclick="removeTruthField(this)">✕</button>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addTruthField()">Add Truth +</button>
+
+                <h2 style="margin-top:20px">Add Dare Challenges</h2>
+                <div id="dareInputs">
+                    <div class="input-group">
+                        <input type="text" placeholder="Dare challenge">
+                        <button class="btn btn-danger" onclick="removeDareField(this)">✕</button>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addDareField()">Add Dare +</button>
+                <button class="btn btn-primary" onclick="saveTruthDare()" style="margin-left:10px">Start Game</button>
+            </div>
+        </div>
+
+        <!-- Main Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="game-area">
+                <div class="circle" id="circle"></div>
+                <img src="https://png.pngtree.com/png-vector/20230728/ourmid/pngtree-plastic-water-bottle-vector-png-image_7009467.png" alt="Bottle" id="bottle">
+            </div>
+            <button class="btn btn-primary" onclick="rollBottle()" style="margin:20px auto; display:block">Roll Bottle!</button>
+            <button class="btn btn-primary" onclick="showMenu()">Menu</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <h2 id="resultTitle"></h2>
+            <p id="resultText"></p>
+            <button class="btn btn-primary" onclick="closeModal('resultModal')">OK</button>
+        </div>
+    </div>
+
+    <div class="modal" id="menuModal">
+        <div class="modal-content">
+            <h2>Menu</h2>
+            <button class="btn btn-primary" onclick="managePlayers()">Manage Players</button>
+            <button class="btn btn-primary" onclick="manageTruths()">Manage Truths</button>
+            <button class="btn btn-primary" onclick="manageDares()">Manage Dares</button>
+            <button class="btn btn-danger" onclick="closeModal('menuModal')">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let players = JSON.parse(localStorage.getItem('players')) || [];
+        let truths = JSON.parse(localStorage.getItem('truths')) || [];
+        let dares = JSON.parse(localStorage.getItem('dares')) || [];
+
+        window.onload = () => {
+            if(players.length > 0) {
+                showGameScreen();
+                createPlayerSegments();
+            }
+        }
+
+        function addPlayerField() {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <input type="text" placeholder="Player name">
+                <button class="btn btn-danger" onclick="removePlayerField(this)">✕</button>
+            `;
+            document.getElementById('playerInputs').appendChild(div);
+        }
+
+        function removePlayerField(btn) {
+            if(document.querySelectorAll('#playerInputs .input-group').length > 1) {
+                btn.parentElement.remove();
+            }
+        }
+
+        function savePlayers() {
+            players = [...document.querySelectorAll('#playerInputs input')].map(input => input.value);
+            localStorage.setItem('players', JSON.stringify(players));
+            document.getElementById('playerSetup').classList.remove('active-screen');
+            document.getElementById('truthDareSetup').classList.add('active-screen');
+        }
+
+        function addTruthField() {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <input type="text" placeholder="Truth question">
+                <button class="btn btn-danger" onclick="removeTruthField(this)">✕</button>
+            `;
+            document.getElementById('truthInputs').appendChild(div);
+        }
+
+        function removeTruthField(btn) {
+            if(document.querySelectorAll('#truthInputs .input-group').length > 1) {
+                btn.parentElement.remove();
+            }
+        }
+
+        function addDareField() {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <input type="text" placeholder="Dare challenge">
+                <button class="btn btn-danger" onclick="removeDareField(this)">✕</button>
+            `;
+            document.getElementById('dareInputs').appendChild(div);
+        }
+
+        function removeDareField(btn) {
+            if(document.querySelectorAll('#dareInputs .input-group').length > 1) {
+                btn.parentElement.remove();
+            }
+        }
+
+        function saveTruthDare() {
+            truths = [...document.querySelectorAll('#truthInputs input')].map(input => input.value);
+            dares = [...document.querySelectorAll('#dareInputs input')].map(input => input.value);
+            localStorage.setItem('truths', JSON.stringify(truths));
+            localStorage.setItem('dares', JSON.stringify(dares));
+            showGameScreen();
+            createPlayerSegments();
+        }
+
+        function showGameScreen() {
+            document.querySelectorAll('.setup-screen').forEach(el => el.classList.remove('active-screen'));
+            document.getElementById('gameScreen').classList.add('active-screen');
+        }
+
+        function createPlayerSegments() {
+            const circle = document.getElementById('circle');
+            circle.innerHTML = '';
+            const segmentAngle = 360 / players.length;
+
+            players.forEach((player, index) => {
+                const segment = document.createElement('div');
+                segment.className = 'player-segment';
+                segment.style.transform = `rotate(${index * segmentAngle}deg) skewY(${segmentAngle - 90}deg)`;
+                segment.style.backgroundColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+
+                const name = document.createElement('div');
+                name.className = 'player-name';
+                name.textContent = player;
+                name.style.transform = `rotate(${segmentAngle/2}deg)`;
+                segment.appendChild(name);
+
+                circle.appendChild(segment);
+            });
+        }
+
+        function rollBottle() {
+            const bottle = document.getElementById('bottle');
+            const spins = 5 * 360 + Math.random() * 360;
+            const selectedAngle = spins % 360;
+            
+            bottle.style.transform = `rotate(${spins}deg)`;
+            
+            setTimeout(() => {
+                const segmentAngle = 360 / players.length;
+                const selectedIndex = Math.floor((360 - selectedAngle % 360) / segmentAngle);
+                const selectedPlayer = players[selectedIndex % players.length];
+                
+                const category = Math.random() > 0.5 ? 'truth' : 'dare';
+                const questions = category === 'truth' ? truths : dares;
+                const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+                
+                document.getElementById('resultTitle').textContent = `${selectedPlayer} - ${category.toUpperCase()}`;
+                document.getElementById('resultText').textContent = randomQuestion;
+                document.getElementById('resultModal').style.display = 'flex';
+            }, 5000);
+        }
+
+        function showMenu() {
+            document.getElementById('menuModal').style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function managePlayers() {
+            // Similar to initial player setup
+            closeModal('menuModal');
+            document.getElementById('playerSetup').classList.add('active-screen');
+        }
+
+        function manageTruths() {
+            // Similar to truth setup
+            closeModal('menuModal');
+            document.getElementById('truthDareSetup').classList.add('active-screen');
+        }
+
+        function manageDares() {
+            // Similar to dare setup
+            closeModal('menuModal');
+            document.getElementById('truthDareSetup').classList.add('active-screen');
+        }
+    </script>
+    <div style="width: 90%; text-align: center; margin: auto;">
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <h2>Used Prompt to generate this site:</h2><br>
+        <p>Now give me HTML, CSS< and JS code for a game. I want a game. where players will start rolling a bottle in this game and bottle will stop on a random angle. bottle will move in angular movement. Like as in truth and dare game players roll the bottle in a angular way. So, when player loads our website players data will load from browser storage. If he is new then its data will be saved in browser as he/she starts the game. When user load the game website our website will ask the user to enter that name of players and click on 'Plus' button to add new fields to add more players or click on 'cross' to delete a player. After entering the players names player will click on 'Next' button. then the game will ask the user to add truth questions. there will be only one field in starting to enter a sentence for truth group and then user can add more input fields for truth group by clicking on 'Add' and player can delete sentences by clicking on 'cross' button. same as truth there will be a dare group also. user will enter some text sentence for dare and click on 'add' to add more input fields to store more sentences. after the data fill up player will click on 'Next' button and the main game screen will be shown up. in the main game screen there will be a plastic bottle which is lay down on the floor and there will be a bog circle where each player have equal some part of the circle with random color of circle radius and. Each players stored names will show up there. if a player click on 'Roll' button then the bottle will spin fast for 5 seconds and then slowly stops on a random player's field. make sure this game website responsible to all type fo device. and if a old user come to our website then starting window will be directly redirected to main game window. if a old player wants to add more players, truth, dare. then player can edit those info in 'Menu'. make the design attractive with modern style and add most animations to make the smooth vibe. If a user has been selected after spin then our website will show up a popup in that pop up players will see the selected person name, and a random sentence from 'truth' or 'dare'. if player wants to add more players, truth, dare sentences. Player have to click on 'Menu' button and a pop up will be shown there in that pop up user see options to Manage players, Manage dare, and Manage truth. if user selects 'manager players' option then our website will show a window where the player can add, delete players. and same for dare and truth too. Note that if the total players are 3 then circle will be divided in three equal areas and radius. this law is applied on any type of number of player. Give me the entire code at one place at once. You have to divide the circle into equal part depending on total players number but don't fill the players' area in circle. just color the radius where the player part is. Means if a game have 3 players then the circle's total radius will be divided into 3 equal parts and each small radius will have random color each time. and each radius should have its player name there.</p> <br><br>
+    </div>
+</body>
+</html>
