@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Typing Game</title>
+  <style>
+    /* Reset and base styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #ffffff;
+      color: #333;
+      overflow-x: hidden;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .dark-mode {
+      background-color: #1e1e1e;
+      color: #f1f1f1;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      position: relative;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    header h1 {
+      font-size: 2rem;
+    }
+    .toggle-dark {
+      cursor: pointer;
+      background: #f0f0f0;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .toggle-dark:hover {
+      background: #e0e0e0;
+    }
+    .score-board {
+      font-size: 1.2rem;
+    }
+    .game-info {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .game-info p {
+      margin: 0.5rem 0;
+      font-size: 1.1rem;
+    }
+    .word-display {
+      font-size: 2.5rem;
+      letter-spacing: 0.2rem;
+      margin-bottom: 1rem;
+      min-height: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .word-display span {
+      display: inline-block;
+      transition: color 0.3s;
+    }
+    .input-section {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    input[type="text"] {
+      width: 80%;
+      max-width: 400px;
+      padding: 0.75rem;
+      font-size: 1.2rem;
+      border: 3px solid #ccc;
+      border-radius: 5px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"].correct {
+      animation: blinkGreen 1s;
+    }
+    input[type="text"].wrong {
+      animation: blinkRed 1s;
+    }
+    @keyframes blinkGreen {
+      0% { border-color: #28a745; }
+      50% { border-color: #ccc; }
+      100% { border-color: #28a745; }
+    }
+    @keyframes blinkRed {
+      0% { border-color: #dc3545; }
+      50% { border-color: #ccc; }
+      100% { border-color: #dc3545; }
+    }
+    .controls {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin: 0 0.5rem;
+    }
+    .start-btn {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .start-btn:hover {
+      background-color: #0069d9;
+    }
+    .restart-btn {
+      background-color: #17a2b8;
+      color: #fff;
+    }
+    .restart-btn:hover {
+      background-color: #138496;
+    }
+    /* Pop-up Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      text-align: center;
+      position: relative;
+      max-width: 90%;
+    }
+    .dark-mode .modal-content {
+      background: #333;
+      color: #f1f1f1;
+    }
+    .modal-content h2 {
+      margin-bottom: 1rem;
+    }
+    .close-modal {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .close-modal:hover {
+      background: #c82333;
+    }
+    /* Animated shapes for modern look */
+    .shape {
+      position: absolute;
+      background: rgba(0,123,255,0.2);
+      border-radius: 50%;
+      z-index: -1;
+      animation: float 6s ease-in-out infinite;
+    }
+    .shape.one {
+      width: 150px;
+      height: 150px;
+      top: -50px;
+      left: -50px;
+    }
+    .shape.two {
+      width: 200px;
+      height: 200px;
+      bottom: -100px;
+      right: -100px;
+      background: rgba(23,162,184,0.2);
+      animation-duration: 8s;
+    }
+    @keyframes float {
+      0% { transform: translate(0, 0); }
+      50% { transform: translate(20px, 20px); }
+      100% { transform: translate(0, 0); }
+    }
+    /* Responsive styling */
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.5rem;
+      }
+      .word-display {
+        font-size: 2rem;
+      }
+      input[type="text"] {
+        font-size: 1rem;
+      }
+      .toggle-dark {
+        padding: 0.4rem 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shape one"></div>
+  <div class="shape two"></div>
+  <div class="container">
+    <header>
+      <h1>Typing Game</h1>
+      <button class="toggle-dark">Dark Mode</button>
+    </header>
+    <div class="score-board">
+      <p>Score: <span id="score">0</span></p>
+      <p>Best Score: <span id="bestScore">0</span></p>
+      <p>Time Left: <span id="timeLeft">30</span>s</p>
+    </div>
+    <div class="game-info">
+      <div class="word-display" id="wordDisplay">
+        <!-- Word letters will appear here -->
+      </div>
+    </div>
+    <div class="input-section">
+      <input type="text" id="letterInput" placeholder="Start typing..." disabled autocomplete="off" />
+    </div>
+    <div class="controls">
+      <button class="start-btn" id="startBtn">Start Game</button>
+      <button class="restart-btn" id="restartBtn" style="display:none;">Restart Game</button>
+    </div>
+  </div>
+
+  <!-- Modal for Game Over -->
+  <div class="modal" id="resultModal">
+    <div class="modal-content">
+      <h2>Time's Up!</h2>
+      <p>Your Score: <span id="finalScore">0</span></p>
+      <button class="close-modal" id="closeModalBtn">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Variables and DOM Elements
+    const startBtn = document.getElementById('startBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const letterInput = document.getElementById('letterInput');
+    const wordDisplay = document.getElementById('wordDisplay');
+    const scoreDisplay = document.getElementById('score');
+    const bestScoreDisplay = document.getElementById('bestScore');
+    const timeLeftDisplay = document.getElementById('timeLeft');
+    const resultModal = document.getElementById('resultModal');
+    const finalScoreDisplay = document.getElementById('finalScore');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const toggleDarkBtn = document.querySelector('.toggle-dark');
+    
+    let gameTimer;
+    let timeLeft = 30;
+    let score = 0;
+    let currentWord = '';
+    let letterIndex = 0;
+    let gameRunning = false;
+
+    // A list of sample words
+    const words = [
+      'javascript', 'developer', 'coding', 'animation', 'responsive',
+      'browser', 'localstorage', 'function', 'variable', 'modern',
+      'interface', 'design', 'mobile', 'desktop', 'challenge'
+    ];
+
+    // Get best score from local storage
+    function getBestScore() {
+      return localStorage.getItem('bestScore') || 0;
+    }
+    bestScoreDisplay.textContent = getBestScore();
+
+    // Set a new best score if applicable
+    function updateBestScore(newScore) {
+      const best = Number(getBestScore());
+      if (newScore > best) {
+        localStorage.setItem('bestScore', newScore);
+        bestScoreDisplay.textContent = newScore;
+      }
+    }
+
+    // Pick a random word from the words list
+    function getRandomWord() {
+      return words[Math.floor(Math.random() * words.length)];
+    }
+
+    // Display the current word with individual letter spans
+    function displayWord(word) {
+      wordDisplay.innerHTML = '';
+      word.split('').forEach(letter => {
+        const span = document.createElement('span');
+        span.textContent = letter;
+        wordDisplay.appendChild(span);
+      });
+    }
+
+    // Start the game
+    function startGame() {
+      gameRunning = true;
+      score = 0;
+      timeLeft = 30;
+      scoreDisplay.textContent = score;
+      timeLeftDisplay.textContent = timeLeft;
+      letterInput.value = '';
+      letterInput.disabled = false;
+      letterInput.focus();
+      startBtn.style.display = 'none';
+      restartBtn.style.display = 'inline-block';
+      currentWord = getRandomWord();
+      displayWord(currentWord);
+      letterIndex = 0;
+
+      // Clear any previous timer and start a new one
+      clearInterval(gameTimer);
+      gameTimer = setInterval(() => {
+        timeLeft--;
+        timeLeftDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(gameTimer);
+          endGame();
+        }
+      }, 1000);
+    }
+
+    // End the game and show the results modal
+    function endGame() {
+      gameRunning = false;
+      letterInput.disabled = true;
+      updateBestScore(score);
+      finalScoreDisplay.textContent = score;
+      resultModal.classList.add('active');
+    }
+
+    // Restart the game (reset everything)
+    function restartGame() {
+      clearInterval(gameTimer);
+      timeLeft = 30;
+      score = 0;
+      scoreDisplay.textContent = score;
+      timeLeftDisplay.textContent = timeLeft;
+      letterInput.value = '';
+      currentWord = getRandomWord();
+      displayWord(currentWord);
+      letterIndex = 0;
+      letterInput.disabled = false;
+      letterInput.focus();
+      gameRunning = true;
+      clearInterval(gameTimer);
+      gameTimer = setInterval(() => {
+        timeLeft--;
+        timeLeftDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(gameTimer);
+          endGame();
+        }
+      }, 1000);
+    }
+
+    // Check the input letter
+    letterInput.addEventListener('input', () => {
+      if (!gameRunning) return;
+      const inputLetter = letterInput.value.slice(-1); // get last character
+      // Get the corresponding letter span from the displayed word
+      const spans = wordDisplay.querySelectorAll('span');
+      if (currentWord[letterIndex] === inputLetter) {
+        // Correct letter
+        spans[letterIndex].style.color = '#28a745';
+        blinkBorder('correct');
+        score++;
+        scoreDisplay.textContent = score;
+        letterIndex++;
+        // If word completed, get new word
+        if (letterIndex === currentWord.length) {
+          letterInput.value = '';
+          currentWord = getRandomWord();
+          displayWord(currentWord);
+          letterIndex = 0;
+        }
+      } else {
+        // Wrong letter
+        blinkBorder('wrong');
+      }
+    });
+
+    // Add and remove a CSS class to trigger border blink animation
+    function blinkBorder(className) {
+      letterInput.classList.add(className);
+      setTimeout(() => {
+        letterInput.classList.remove(className);
+      }, 1000);
+    }
+
+    // Button event listeners
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', restartGame);
+    closeModalBtn.addEventListener('click', () => {
+      resultModal.classList.remove('active');
+      startBtn.style.display = 'inline-block';
+      restartBtn.style.display = 'none';
+    });
+
+    // Dark mode toggle
+    toggleDarkBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      // Optionally update button text
+      toggleDarkBtn.textContent = document.body.classList.contains('dark-mode') ? 'Light Mode' : 'Dark Mode';
+    });
+  </script>
+  <div style="width: 90%; text-align: center; margin: auto;">
+    <h2>Used Prompt to generate this site:</h2><br>
+    <p>Write an HTML, CSS, and JS code at once. and design and develop a typing game. for mobile and desktop both.
+        designs should be modern and have the most animations. in this have browser storage to save Best Scores. If
+        a user loads my website then the user has to press the Start game button to start the game. and there will
+        be a restart button also. restart button will appear only when the game is running. and if the user types
+        then the input field's border blinks for 1-sec green when the user enters the right letter of the word and
+        the border will blink red if the user enters the wrong letter. The user will get notified when the game time
+        ends. and a pop-up will show its game result and have a close button to close the pop-up. and then the user
+        can restart the game. theme should be white and have a modern design. in the game, there is a 30-second
+        timer. if the timer ends game is over. there should be a dark mode toggle button. In the website game, there
+        should be a Score. when a player is playing the game player can see its real-time score at the top. make the
+        design more modern and add some shapes to make it attractive. </p> <br><br>
+</div>
+</body>
+</html>
