@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spin the Bottle - Truth & Dare</title>
+  <style>
+    /* Reset and base styles */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+    h2 { text-align: center; margin-bottom: 20px; }
+    button { padding: 10px 20px; border: none; background: #007BFF; color: #fff; cursor: pointer; border-radius: 4px; transition: background 0.3s ease; }
+    button:hover { background: #0056b3; }
+    input[type="text"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 5px; flex: 1; }
+    .small-btn { background: #dc3545; margin-left: 5px; }
+    .add-btn { background: #28a745; }
+    
+    /* Screens (setup and game) */
+    .screen { display: none; padding: 20px; max-width: 600px; margin: 30px auto; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .active { display: block; }
+    .input-group { display: flex; align-items: center; margin-bottom: 10px; }
+    .input-list { margin-bottom: 20px; }
+    
+    /* Main Game Screen */
+    #gameScreen { position: relative; height: 90vh; background: #e2e2e2; overflow: hidden; }
+    #circle-container {
+      position: relative;
+      width: 90vw;
+      max-width: 500px;
+      height: 90vw;
+      max-height: 500px;
+      margin: 20px auto;
+      border-radius: 50%;
+    }
+    /* The ring will be created as an annular ring using a conic-gradient */
+    #ring {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+    }
+    /* Inner circle to “cut out” the center so only the ring is visible */
+    #ring::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60%;
+      height: 60%;
+      background: #fff;
+      border-radius: 50%;
+      z-index: 1;
+    }
+    /* Player name labels (one per spoke) */
+    .spoke-label {
+      position: absolute;
+      font-weight: bold;
+      z-index: 2;
+      white-space: nowrap;
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+      pointer-events: none;
+    }
+    /* Bottle image style */
+    #bottle {
+      width: 80px;
+      height: 200px;
+      background: url('https://i.imgur.com/3KXum9I.png') center/contain no-repeat;
+      position: absolute;
+      top: calc(50% - 100px);
+      left: calc(50% - 40px);
+      transform-origin: 50% 90%;
+      /* We do not preset a transition here so that each spin is handled by JS */
+      z-index: 3;
+    }
+    /* Roll & Menu Buttons */
+    #controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 4;
+    }
+    
+    /* Result Popup */
+    #resultPopup {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #resultPopup .popup-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 300px;
+      width: 80%;
+      animation: fadeIn 0.5s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    /* Menu Modal */
+    #menuModal {
+      position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #menuModal .menu-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+    }
+    .menu-section { margin-bottom: 20px; }
+    .menu-section h3 { margin-bottom: 10px; }
+    .manage-list .input-group { margin-bottom: 10px; }
+    .close-btn { background: #6c757d; margin-top: 10px; }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      .spoke-label { font-size: 0.8em; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Setup Screens -->
+  <div id="setupScreen" class="screen active">
+    <h2>Setup Players</h2>
+    <div id="playersSetup">
+      <div class="input-list" id="playersList">
+        <!-- Player inputs appended here -->
+      </div>
+      <button id="addPlayerBtn" class="add-btn">+ Add Player</button>
+      <br><br>
+      <button id="toTruthBtn">Next: Setup Truth Questions</button>
+    </div>
+  </div>
+
+  <div id="truthScreen" class="screen">
+    <h2>Setup Truth Questions</h2>
+    <div id="truthSetup">
+      <div class="input-list" id="truthList">
+        <!-- Truth inputs -->
+      </div>
+      <button id="addTruthBtn" class="add-btn">+ Add Truth</button>
+      <br><br>
+      <button id="toDareBtn">Next: Setup Dare Tasks</button>
+    </div>
+  </div>
+
+  <div id="dareScreen" class="screen">
+    <h2>Setup Dare Tasks</h2>
+    <div id="dareSetup">
+      <div class="input-list" id="dareList">
+        <!-- Dare inputs -->
+      </div>
+      <button id="addDareBtn" class="add-btn">+ Add Dare</button>
+      <br><br>
+      <button id="startGameBtn">Start Game</button>
+    </div>
+  </div>
+
+  <!-- Main Game Screen -->
+  <div id="gameScreen" class="screen">
+    <div id="circle-container">
+      <div id="ring"></div>
+      <div id="bottle"></div>
+      <!-- Spoke labels will be added dynamically -->
+    </div>
+    <div id="controls">
+      <button id="rollBtn">Roll</button>
+      <button id="menuBtn">Menu</button>
+    </div>
+  </div>
+
+  <!-- Result Popup -->
+  <div id="resultPopup">
+    <div class="popup-content">
+      <h3 id="selectedPlayerName"></h3>
+      <p id="selectedTask"></p>
+      <button id="closeResultBtn" class="close-btn">Close</button>
+    </div>
+  </div>
+
+  <!-- Menu Modal for Managing Data -->
+  <div id="menuModal">
+    <div class="menu-content">
+      <h2>Manage Game Data</h2>
+      <div class="menu-section">
+        <button id="managePlayersBtn">Manage Players</button>
+      </div>
+      <div class="menu-section">
+        <button id="manageTruthBtn">Manage Truth Questions</button>
+      </div>
+      <div class="menu-section">
+        <button id="manageDareBtn">Manage Dare Tasks</button>
+      </div>
+      <div id="manageArea">
+        <!-- Management area contents -->
+      </div>
+      <button id="closeMenuBtn" class="close-btn">Close Menu</button>
+    </div>
+  </div>
+
+  <script>
+    /******************************
+     * Global Variables & Data Storage
+     ******************************/
+    const defaultData = {
+      players: ['Player 1'],
+      truth: ['What is your biggest fear?'],
+      dare: ['Do 10 push-ups']
+    };
+    let gameData = JSON.parse(localStorage.getItem('gameData')) || defaultData;
+    let currentScreen = 'setupScreen';
+    // This variable accumulates the bottle’s rotation angle
+    let currentRotation = 0;
+    
+    function saveData() {
+      localStorage.setItem('gameData', JSON.stringify(gameData));
+    }
+    
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+      currentScreen = screenId;
+    }
+    
+    /******************************
+     * Setup Screen Rendering Functions
+     ******************************/
+    function renderPlayersSetup() {
+      const playersList = document.getElementById('playersList');
+      playersList.innerHTML = '';
+      gameData.players.forEach((player, index) => {
+        const group = document.createElement('div');
+        group.className = 'input-group';
+        group.innerHTML = `<input type="text" value="${player}" data-index="${index}" />
+                           <button class="small-btn removePlayerBtn" data-index="${index}">&times;</button>`;
+        playersList.appendChild(group);
+      });
+    }
+    
+    function renderTruthSetup() {
+      const truthList = document.getElementById('truthList');
+      truthList.innerHTML = '';
+      gameData.truth.forEach((item, index) => {
+        const group = document.createElement('div');
+        group.className = 'input-group';
+        group.innerHTML = `<input type="text" value="${item}" data-index="${index}" />
+                           <button class="small-btn removeTruthBtn" data-index="${index}">&times;</button>`;
+        truthList.appendChild(group);
+      });
+    }
+    
+    function renderDareSetup() {
+      const dareList = document.getElementById('dareList');
+      dareList.innerHTML = '';
+      gameData.dare.forEach((item, index) => {
+        const group = document.createElement('div');
+        group.className = 'input-group';
+        group.innerHTML = `<input type="text" value="${item}" data-index="${index}" />
+                           <button class="small-btn removeDareBtn" data-index="${index}">&times;</button>`;
+        dareList.appendChild(group);
+      });
+    }
+    
+    /******************************
+     * Circle (Game Board) Update
+     ******************************/
+    function updateCircle() {
+      const ring = document.getElementById('ring');
+      const container = document.getElementById('circle-container');
+      const players = gameData.players;
+      const n = players.length;
+      
+      // For the annular ring we create equal sectors using a conic-gradient.
+      const slice = 360 / n;
+      const gradientParts = [];
+      for (let i = 0; i < n; i++) {
+        const hue = Math.floor(Math.random() * 360);
+        gradientParts.push(`hsl(${hue},70%,50%) ${i * slice}deg ${(i+1) * slice}deg`);
+      }
+      ring.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+      
+      // Remove any old labels
+      container.querySelectorAll('.spoke-label').forEach(label => label.remove());
+      
+      // For each player, create a label positioned along the middle of the annulus.
+      const outerR = container.offsetWidth / 2;
+      const innerR = outerR * 0.6; // inner circle diameter is 60% of outer
+      const labelRadius = (outerR + innerR) / 2;
+      
+      for (let i = 0; i < n; i++) {
+        const midAngleDeg = i * slice + slice / 2;
+        const midAngleRad = midAngleDeg * Math.PI / 180;
+        const cx = container.offsetWidth / 2;
+        const cy = container.offsetHeight / 2;
+        const x = cx + labelRadius * Math.cos(midAngleRad);
+        const y = cy + labelRadius * Math.sin(midAngleRad);
+        
+        const label = document.createElement('div');
+        label.className = 'spoke-label';
+        label.innerText = players[i];
+        label.style.left = (x - 30) + 'px';
+        label.style.top = (y - 10) + 'px';
+        container.appendChild(label);
+      }
+    }
+    
+    // Given an angle (0-360), return the corresponding player sector index.
+    function getPlayerIndexFromAngle(angle) {
+      const n = gameData.players.length;
+      const slice = 360 / n;
+      const adjusted = (angle + slice / 2) % 360;
+      return Math.floor(adjusted / slice);
+    }
+    
+    /******************************
+     * DOMContentLoaded and Initial Setup
+     ******************************/
+    document.addEventListener('DOMContentLoaded', () => {
+      if(localStorage.getItem('gameData')) {
+        renderPlayersSetup();
+        renderTruthSetup();
+        renderDareSetup();
+      } else {
+        gameData = defaultData;
+        saveData();
+      }
+      if(currentScreen !== 'gameScreen') showScreen('setupScreen');
+      updateCircle();
+    });
+    
+    /******************************
+     * Setup Screen Event Listeners
+     ******************************/
+    // Players Setup
+    document.getElementById('addPlayerBtn').addEventListener('click', () => {
+      gameData.players.push('New Player');
+      saveData();
+      renderPlayersSetup();
+      updateCircle();
+    });
+    document.getElementById('playersList').addEventListener('click', (e) => {
+      if(e.target.classList.contains('removePlayerBtn')) {
+        const idx = e.target.getAttribute('data-index');
+        gameData.players.splice(idx, 1);
+        if(gameData.players.length === 0) gameData.players.push('Player 1');
+        saveData();
+        renderPlayersSetup();
+        updateCircle();
+      }
+    });
+    document.getElementById('playersList').addEventListener('input', (e) => {
+      if(e.target.tagName === 'INPUT') {
+        const idx = e.target.getAttribute('data-index');
+        gameData.players[idx] = e.target.value || 'Unnamed';
+        saveData();
+        updateCircle();
+      }
+    });
+    document.getElementById('toTruthBtn').addEventListener('click', () => {
+      showScreen('truthScreen');
+      renderTruthSetup();
+    });
+    
+    // Truth Setup
+    document.getElementById('addTruthBtn').addEventListener('click', () => {
+      gameData.truth.push('New truth question');
+      saveData();
+      renderTruthSetup();
+    });
+    document.getElementById('truthList').addEventListener('click', (e) => {
+      if(e.target.classList.contains('removeTruthBtn')) {
+        const idx = e.target.getAttribute('data-index');
+        gameData.truth.splice(idx, 1);
+        if(gameData.truth.length === 0) gameData.truth.push('Truth?');
+        saveData();
+        renderTruthSetup();
+      }
+    });
+    document.getElementById('truthList').addEventListener('input', (e) => {
+      if(e.target.tagName === 'INPUT') {
+        const idx = e.target.getAttribute('data-index');
+        gameData.truth[idx] = e.target.value || 'Truth?';
+        saveData();
+      }
+    });
+    document.getElementById('toDareBtn').addEventListener('click', () => {
+      showScreen('dareScreen');
+      renderDareSetup();
+    });
+    
+    // Dare Setup
+    document.getElementById('addDareBtn').addEventListener('click', () => {
+      gameData.dare.push('New dare task');
+      saveData();
+      renderDareSetup();
+    });
+    document.getElementById('dareList').addEventListener('click', (e) => {
+      if(e.target.classList.contains('removeDareBtn')) {
+        const idx = e.target.getAttribute('data-index');
+        gameData.dare.splice(idx, 1);
+        if(gameData.dare.length === 0) gameData.dare.push('Dare?');
+        saveData();
+        renderDareSetup();
+      }
+    });
+    document.getElementById('dareList').addEventListener('input', (e) => {
+      if(e.target.tagName === 'INPUT') {
+        const idx = e.target.getAttribute('data-index');
+        gameData.dare[idx] = e.target.value || 'Dare?';
+        saveData();
+      }
+    });
+    document.getElementById('startGameBtn').addEventListener('click', () => {
+      saveData();
+      showScreen('gameScreen');
+      updateCircle();
+    });
+    
+    /******************************
+     * Main Game - Bottle Spin
+     ******************************/
+    let spinning = false;
+    document.getElementById('rollBtn').addEventListener('click', () => {
+      if(spinning) return;
+      spinning = true;
+      const bottle = document.getElementById('bottle');
+      // Determine a new rotation increment.
+      const fullSpins = 20;
+      const randomExtra = Math.floor(Math.random() * 360);
+      // Accumulate the rotation angle so that each spin starts where the last ended.
+      currentRotation += fullSpins * 360 + randomExtra;
+      bottle.style.transition = 'transform 5s cubic-bezier(0.33, 1, 0.68, 1)';
+      bottle.style.transform = `rotate(${currentRotation}deg)`;
+      
+      setTimeout(() => {
+        // After the spin, determine which player's sector was hit.
+        const normalized = randomExtra % 360;
+        const index = getPlayerIndexFromAngle(normalized);
+        const selectedPlayer = gameData.players[index];
+        const isTruth = Math.random() < 0.5;
+        const list = isTruth ? gameData.truth : gameData.dare;
+        const randomSentence = list[Math.floor(Math.random() * list.length)];
+        showResult(selectedPlayer, (isTruth ? 'Truth: ' : 'Dare: ') + randomSentence);
+        spinning = false;
+      }, 5000);
+    });
+    
+    function showResult(playerName, task) {
+      document.getElementById('selectedPlayerName').innerText = playerName;
+      document.getElementById('selectedTask').innerText = task;
+      document.getElementById('resultPopup').style.display = 'flex';
+    }
+    document.getElementById('closeResultBtn').addEventListener('click', () => {
+      document.getElementById('resultPopup').style.display = 'none';
+    });
+    
+    /******************************
+     * Menu Management
+     ******************************/
+    document.getElementById('menuBtn').addEventListener('click', () => {
+      document.getElementById('menuModal').style.display = 'flex';
+      document.getElementById('manageArea').innerHTML = '';
+    });
+    document.getElementById('closeMenuBtn').addEventListener('click', () => {
+      document.getElementById('menuModal').style.display = 'none';
+      updateCircle();
+    });
+    
+    // Manage Players
+    document.getElementById('managePlayersBtn').addEventListener('click', () => {
+      const manageArea = document.getElementById('manageArea');
+      manageArea.innerHTML = '<h3>Manage Players</h3><div id="managePlayersList"></div><button id="addManagePlayer" class="add-btn">+ Add Player</button>';
+      renderManagePlayers();
+    });
+    function renderManagePlayers() {
+      const listDiv = document.getElementById('managePlayersList');
+      if(!listDiv) return;
+      listDiv.innerHTML = '';
+      gameData.players.forEach((player, index) => {
+        const group = document.createElement('div');
+        group.className = 'input-group';
+        group.innerHTML = `<input type="text" value="${player}" data-index="${index}" />
+                           <button class="small-btn removeManagePlayer" data-index="${index}">&times;</button>`;
+        listDiv.appendChild(group);
+      });
+      listDiv.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const idx = e.target.getAttribute('data-index');
+          gameData.players[idx] = e.target.value || 'Unnamed';
+          saveData();
+          updateCircle();
+        });
+      });
+      listDiv.querySelectorAll('.removeManagePlayer').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = e.target.getAttribute('data-index');
+          gameData.players.splice(idx, 1);
+          if(gameData.players.length === 0) gameData.players.push('Player 1');
+          saveData();
+          renderManagePlayers();
+          updateCircle();
+        });
+      });
+      document.getElementById('addManagePlayer').addEventListener('click', () => {
+        gameData.players.push('New Player');
+        saveData();
+        renderManagePlayers();
+        updateCircle();
+      });
+    }
+    
+    // Manage Truth Questions
+    document.getElementById('manageTruthBtn').addEventListener('click', () => {
+      const manageArea = document.getElementById('manageArea');
+      manageArea.innerHTML = '<h3>Manage Truth Questions</h3><div id="manageTruthList"></div><button id="addManageTruth" class="add-btn">+ Add Truth</button>';
+      renderManageTruth();
+    });
+    function renderManageTruth() {
+      const listDiv = document.getElementById('manageTruthList');
+      if(!listDiv) return;
+      listDiv.innerHTML = '';
+      gameData.truth.forEach((item, index) => {
+        const group = document.createElement('div');
+        group.className = 'input-group';
+        group.innerHTML = `<input type="text" value="${item}" data-index="${index}" />
+                           <button class="small-btn removeManageTruth" data-index="${index}">&times;</button>`;
+        listDiv.appendChild(group);
+      });
+      listDiv.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const idx = e.target.getAttribute('data-index');
+          gameData.truth[idx] = e.target.value || 'Truth?';
+          saveData();
+        });
+      });
+      listDiv.querySelectorAll('.removeManageTruth').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = e.target.getAttribute('data-index');
+          gameData.truth.splice(idx, 1);
+          if(gameData.truth.length === 0) gameData.truth.push('Truth?');
+          saveData();
+          renderManageTruth();
+        });
+      });
+      document.getElementById('addManageTruth').addEventListener('click', () => {
+        gameData.truth.push('New truth question');
+        saveData();
+        renderManageTruth();
+      });
+    }
+    
+    // Manage Dare Tasks
+    document.getElementById('manageDareBtn').addEventListener('click', () => {
+      const manageArea = document.getElementById('manageArea');
+      manageArea.innerHTML = '<h3>Manage Dare Tasks</h3><div id="manageDareList"></div><button id="addManageDare" class="add-btn">+ Add Dare</button>';
+      renderManageDare();
+    });
+    function renderManageDare() {
+      const listDiv = document.getElementById('manageDareList');
+      if(!listDiv) return;
+      listDiv.innerHTML = '';
+      gameData.dare.forEach((item, index) => {
+        const group = document.createElement('div');
+        group.className = 'input-group';
+        group.innerHTML = `<input type="text" value="${item}" data-index="${index}" />
+                           <button class="small-btn removeManageDare" data-index="${index}">&times;</button>`;
+        listDiv.appendChild(group);
+      });
+      listDiv.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          const idx = e.target.getAttribute('data-index');
+          gameData.dare[idx] = e.target.value || 'Dare?';
+          saveData();
+        });
+      });
+      listDiv.querySelectorAll('.removeManageDare').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = e.target.getAttribute('data-index');
+          gameData.dare.splice(idx, 1);
+          if(gameData.dare.length === 0) gameData.dare.push('Dare?');
+          saveData();
+          renderManageDare();
+        });
+      });
+      document.getElementById('addManageDare').addEventListener('click', () => {
+        gameData.dare.push('New dare task');
+        saveData();
+        renderManageDare();
+      });
+    }
+    
+    /******************************
+     * Update the ring on window resize
+     ******************************/
+    window.addEventListener('resize', updateCircle);
+    
+  </script>
+  <div style="width: 90%; text-align: center; margin: auto;">
+    <h2>Used Prompt to generate this site:</h2><br>
+    <p>Now give me HTML, CSS< and JS code for a game. I want a game. where players will start rolling a bottle in this game and bottle will stop on a random angle. bottle will move in angular movement. Like as in truth and dare game players roll the bottle in a angular way. So, when player loads our website players data will load from browser storage. If he is new then its data will be saved in browser as he/she starts the game. When user load the game website our website will ask the user to enter that name of players and click on 'Plus' button to add new fields to add more players or click on 'cross' to delete a player. After entering the players names player will click on 'Next' button. then the game will ask the user to add truth questions. there will be only one field in starting to enter a sentence for truth group and then user can add more input fields for truth group by clicking on 'Add' and player can delete sentences by clicking on 'cross' button. same as truth there will be a dare group also. user will enter some text sentence for dare and click on 'add' to add more input fields to store more sentences. after the data fill up player will click on 'Next' button and the main game screen will be shown up. in the main game screen there will be a plastic bottle which is lay down on the floor and there will be a bog circle where each player have equal some part of the circle with random color of circle radius and. Each players stored names will show up there. if a player click on 'Roll' button then the bottle will spin fast for 5 seconds and then slowly stops on a random player's field. make sure this game website responsible to all type fo device. and if a old user come to our website then starting window will be directly redirected to main game window. if a old player wants to add more players, truth, dare. then player can edit those info in 'Menu'. make the design attractive with modern style and add most animations to make the smooth vibe. If a user has been selected after spin then our website will show up a popup in that pop up players will see the selected person name, and a random sentence from 'truth' or 'dare'. if player wants to add more players, truth, dare sentences. Player have to click on 'Menu' button and a pop up will be shown there in that pop up user see options to Manage players, Manage dare, and Manage truth. if user selects 'manager players' option then our website will show a window where the player can add, delete players. and same for dare and truth too. Note that if the total players are 3 then circle will be divided in three equal areas and radius. this law is applied on any type of number of player. Give me the entire code at one place at once. You have to divide the circle into equal part depending on total players number but don't fill the players' area in circle. just color the radius where the player part is. Means if a game have 3 players then the circle's total radius will be divided into 3 equal parts and each small radius will have random color each time. and each radius should have its player name there.</p> <br><br>
+    <p><strong>Second Prompt:</strong></p>
+    <p>the rolling animation is not working properly as I said. the bottle spins at first time correctly but displaced of the centre and then if I respin that then the bottle did not spin. </p>
+</div>
+</body>
+</html>
