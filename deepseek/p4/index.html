@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - Human vs Computer</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+            margin: 20px auto;
+            background-color: #333;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border: none;
+            font-size: 40px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .cell:hover {
+            background-color: #eee;
+        }
+
+        .cell.winning {
+            background-color: #90EE90;
+        }
+
+        #status {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+
+        #restart {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #restart:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tic Tac Toe</h1>
+        <div class="board" id="board">
+            <button class="cell" data-cell></button>
+            <button class="cell" data-cell></button>
+            <button class="cell" data-cell></button>
+            <button class="cell" data-cell></button>
+            <button class="cell" data-cell></button>
+            <button class="cell" data-cell></button>
+            <button class="cell" data-cell></button>
+            <button class="cell" data-cell></button>
+            <button class="cell" data-cell></button>
+        </div>
+        <div id="status">Your turn (X)</div>
+        <button id="restart">Restart Game</button>
+    </div>
+
+    <script>
+        const board = document.getElementById('board');
+        const cells = document.querySelectorAll('[data-cell]');
+        const status = document.getElementById('status');
+        const restartButton = document.getElementById('restart');
+        const winningCombinations = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+            [0, 4, 8], [2, 4, 6] // Diagonals
+        ];
+
+        let isHumanTurn = true;
+        let gameActive = true;
+
+        // Initialize the game
+        startGame();
+
+        restartButton.addEventListener('click', startGame);
+
+        function startGame() {
+            gameActive = true;
+            isHumanTurn = true;
+            cells.forEach(cell => {
+                cell.innerText = '';
+                cell.classList.remove('winning');
+                cell.removeEventListener('click', handleClick);
+                cell.addEventListener('click', handleClick, { once: true });
+            });
+            status.innerText = 'Your turn (X)';
+        }
+
+        function handleClick(e) {
+            const cell = e.target;
+            if (!gameActive || !isHumanTurn || cell.innerText !== '') return;
+
+            placeMark(cell, 'X');
+            
+            if (checkWin('X')) {
+                endGame(true);
+                return;
+            }
+
+            if (isDraw()) {
+                endGame(false);
+                return;
+            }
+
+            isHumanTurn = false;
+            status.innerText = 'Computer\'s turn...';
+            
+            // Computer's turn after short delay
+            setTimeout(computerMove, 1000);
+        }
+
+        function computerMove() {
+            if (!gameActive) return;
+
+            // Simple AI: Random empty cell
+            const emptyCells = [...cells].filter(cell => cell.innerText === '');
+            const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            
+            placeMark(randomCell, 'O');
+            
+            if (checkWin('O')) {
+                endGame(false);
+                return;
+            }
+
+            if (isDraw()) {
+                endGame(false);
+                return;
+            }
+
+            isHumanTurn = true;
+            status.innerText = 'Your turn (X)';
+        }
+
+        function placeMark(cell, mark) {
+            cell.innerText = mark;
+        }
+
+        function checkWin(mark) {
+            return winningCombinations.some(combination => {
+                return combination.every(index => {
+                    return cells[index].innerText === mark;
+                });
+            });
+        }
+
+        function isDraw() {
+            return [...cells].every(cell => cell.innerText !== '');
+        }
+
+        function endGame(humanWon) {
+            gameActive = false;
+            if (humanWon) {
+                status.innerText = 'You won!';
+                highlightWinningCombination('X');
+            } else if (isDraw()) {
+                status.innerText = 'Game draw!';
+            } else {
+                status.innerText = 'Computer won!';
+                highlightWinningCombination('O');
+            }
+        }
+
+        function highlightWinningCombination(mark) {
+            winningCombinations.forEach(combination => {
+                if (combination.every(index => cells[index].innerText === mark)) {
+                    combination.forEach(index => cells[index].classList.add('winning'));
+                }
+            });
+        }
+    </script>
+</body>
+</html>
