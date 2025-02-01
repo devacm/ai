@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Typing Game</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --background: #ffffff;
+            --text: #1f2937;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            transition: 0.3s all;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .score-board {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .time-left {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .game-area {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .word-display {
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            margin: 2rem 0;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.5rem;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .input-field.correct {
+            animation: blink-correct 1s;
+        }
+
+        .input-field.incorrect {
+            animation: blink-error 1s;
+        }
+
+        .controls {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        button {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .start-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .restart-btn {
+            background: var(--error);
+            color: white;
+            display: none;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            background: var(--text);
+            color: var(--background);
+        }
+
+        .result-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--background);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            display: none;
+            z-index: 100;
+        }
+
+        .result-popup h2 {
+            margin-bottom: 1rem;
+        }
+
+        .close-btn {
+            margin-top: 1rem;
+            background: var(--error);
+        }
+
+        @keyframes blink-correct {
+            0% {
+                border-color: var(--success);
+            }
+
+            50% {
+                border-color: var(--success);
+            }
+
+            100% {
+                border-color: #ddd;
+            }
+        }
+
+        @keyframes blink-error {
+            0% {
+                border-color: var(--error);
+            }
+
+            50% {
+                border-color: var(--error);
+            }
+
+            100% {
+                border-color: #ddd;
+            }
+        }
+
+        /* Modern shapes background */
+        .shapes span {
+            position: absolute;
+            background: var(--primary);
+            opacity: 0.1;
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-20px) rotate(90deg);
+            }
+
+            50% {
+                transform: translateY(0) rotate(180deg);
+            }
+
+            75% {
+                transform: translateY(20px) rotate(270deg);
+            }
+        }
+
+        /* Dark mode */
+        .dark-mode {
+            --background: #1f2937;
+            --text: #f9fafb;
+        }
+
+        @media (max-width: 768px) {
+            .word-display {
+                font-size: 1.8rem;
+            }
+
+            .input-field {
+                font-size: 1.2rem;
+                padding: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="shapes">
+            <span style="width: 100px; height: 100px; top: 20%; left: 10%"></span>
+            <span style="width: 80px; height: 80px; top: 60%; right: 15%"></span>
+        </div>
+
+        <div class="header">
+            <div class="score-board">Score: <span id="score">0</span></div>
+            <div class="score-board">Best Score: <span id="Bscore">0</span></div>
+            <div class="time-left">Time: <span id="timer">30</span>s</div>
+        </div>
+
+        <div class="game-area">
+            <div class="word-display" id="current-word"></div>
+            <input type="text" class="input-field" id="word-input" disabled>
+            <div class="controls">
+                <button class="start-btn" id="start-btn">Start Game</button>
+                <button class="restart-btn" id="restart-btn">Restart</button>
+            </div>
+        </div>
+
+        <div class="result-popup" id="result-popup">
+            <h2>Game Over!</h2>
+            <p>Your Score: <span id="final-score">0</span></p>
+            <p>Best Score: <span id="best-score">0</span></p>
+            <button class="close-btn" id="close-btn">Close</button>
+        </div>
+    </div>
+
+    <button class="theme-toggle" id="theme-toggle">🌓</button>
+
+    <script>
+        const words = [
+            "Abode", "abyss", "acorn", "adept", "affix", "agile", "alibi", "aloof", "amaze", "amity", "anvil", "arbor", "ardor", "array", "aspire", "atlas", "attic", "azure", "bacon", "badge",
+            "bagel", "baker", "banjo", "barge", "basil", "beach", "beard", "beast", "beech", "beige", "bench", "beret", "berry", "bison", "blaze", "bleak", "blend", "blimp", "blink", "bliss",
+            "blitz", "bloom", "bluff", "blush", "boast", "bonus", "boost", "booth", "botch", "bound", "brace", "brag", "brash", "brave", "brawl", "bribe", "brief", "brine", "brink", "britt",
+            "broil", "brook", "broth", "brown", "brunt", "brush", "brute", "budge", "bugle", "bulge", "bulky", "bunch", "burly", "burst", "cabin", "cable", "caddy", "cagey", "caked", "caper",
+            "cared", "carny", "cater", "catty", "caustic", "cedar", "celery", "chafe", "chalk", "charm", "chase", "cheeky", "cherry", "chesty", "chime", "chirp", "chomp", "chortle", "chubby",
+            "cipher", "clasp", "classy", "clever", "clove", "clown", "clump", "clumsy", "coach", "cobalt", "cobweb", "cocoa", "codex", "coffer", "cogent", "cohort", "coil", "colt", "comfy",
+            "comic", "conch", "condo", "copse", "coral", "corset", "cosmic", "cosy", "covey", "coyote", "cramp", "cranky", "crate", "craven", "crayon", "crease", "creepy", "crest", "crimp",
+            "crisp", "croak", "crook", "cross", "crow", "crumb", "crux", "crypt", "cubby", "cuddle", "cue", "cuff", "cumin", "cuppa", "curvy", "cutie", "cycle", "dainty", "dapper", "dandy",
+            "dash", "dawn", "dazzle", "decaf", "decree", "delta", "denim", "depot", "depth", "derby", "dewy", "dicey", "dimple", "dingy", "disco", "dizzy", "dodge", "dollop", "donut", "doozy",
+            "drape", "dreamy", "dressy", "drift", "drill", "drool", "droop", "drove", "druid", "dryad", "duet", "dune", "dusk", "dusty", "eager", "early", "earthy", "ebony", "echo", "edgy",
+            "eerie", "elate", "elbow", "elder", "elfin", "elite", "ember", "emote", "empty", "enjoy", "envoy", "epoxy", "equal", "equip", "erase", "erode", "erupt", "essay", "ethyl", "evade",
+            "event", "excel", "exult", "extra", "fable", "facet", "fairy", "faith", "fancy", "fang", "fawn", "feign", "fetch", "fever", "fiery", "filch", "filmy", "final", "finch", "find",
+            "fine", "fir", "fire", "fish", "fit", "flake", "flame", "flare", "flash", "fleet", "fling", "flint", "flip", "flirt", "float", "flock", "flood", "floor", "flora", "flout",
+            "flowery", "flurry", "flush", "flute", "fly", "foam", "foggy", "foil", "fold", "fond", "food", "fool", "foot", "foray", "force", "forge", "forgo", "fort", "fox", "fray",
+            "free", "fresh", "fret", "frill", "frisk", "frost", "frown", "frugal", "fruit", "fudge", "fuel", "fume", "fund", "funny", "furry", "fuse", "fuzzy", "gabby", "gale", "game",
+            "gape", "garb", "gash", "gaudy", "gauze", "gaze", "gem", "genial", "ghost", "giant", "gift", "giggle", "gild", "ginger", "glade", "glaze", "gleam", "glee", "glide", "glint",
+            "glitch", "gloom", "glory", "gloss", "glove", "glow", "glue", "gnaw", "gnome", "goal", "gobble", "gold", "good", "goofy", "gorge", "gory", "grace", "grade", "grand", "grape",
+            "graph", "grass", "grate", "grave", "gravy", "gray", "green", "greet", "grid", "grief", "grill", "grim", "grin", "grip", "grit", "groan", "groom", "grove", "growl", "gruff",
+            "grunt", "guard", "guess", "guest", "guide", "guile", "guilt", "gummy", "gusto", "gym", "hack", "hale", "half", "hall", "hamper", "handy", "happy", "hardy", "harp", "harsh",
+            "haste", "hatch", "haunt", "haven", "havoc", "hawk", "hay", "heap", "hearth", "hefty", "hello", "help", "herb", "herd", "hero", "hex", "hide", "hike", "hill", "hinge", "hint",
+            "hippo", "hire", "hiss", "hive", "hoard", "hobble", "hobby", "hockey", "hole", "home", "honey", "hoof", "hook", "hoop", "hope", "horn", "hose", "host", "hotel", "hour", "house",
+            "hover", "howl", "hub", "hug", "hum", "humid", "hump", "hunt", "hurry", "husky", "hydra", "hymn", "hype", "ice", "icon", "idle", "igloo", "image", "impish", "imply", "inch",
+            "index", "infer", "ink", "inn", "input", "inset", "irate", "iris", "iron", "ivory", "ivy", "jab", "jade", "jagged", "jail", "jam", "jar", "jazzy", "jeep", "jelly", "jet",
+            "jewel", "jiffy", "jiggle", "jinx", "jive", "job", "jog", "join", "joke", "jolly", "jot", "joy", "judge", "juice", "juicy", "jump", "jungle", "junk", "jury", "just", "keen",
+            "keep", "kelp", "key", "kick", "kid", "kind", "king", "kiss", "kite", "kiwi", "knack", "knee", "knit", "knob", "knock", "knot", "know", "koala", "label", "lace", "lack",
+            "lacy", "lady", "lake", "lamb", "lame", "lamp", "land", "lane", "large", "lash", "lasso", "last", "latch", "late", "laugh", "launch", "lava", "lawn", "layer", "lazy", "leaf",
+            "leak", "lean", "learn", "leash", "least", "leave", "ledge", "left", "lemon", "lend", "lens", "lentil", "level", "lever", "lid", "lie", "life", "lift", "light", "like",
+            "lilac", "lily", "limb", "lime", "limit", "line", "link", "lion", "lip", "list", "live", "load", "loaf", "lobby", "local", "lock", "loft", "log", "logic", "lone", "long",
+            "loop", "loose", "lord", "lose", "lotus", "loud", "love", "low", "loyal", "luck", "lucky", "lush", "lute", "lyre", "macaw", "mace", "mad", "magic", "maid", "mail", "main",
+            "make", "male", "mall", "malt", "mambo", "man", "map", "march", "mark", "marsh", "mask", "mass", "mast", "match", "mate", "math", "maze", "mead", "meal", "mean", "meat",
+            "medal", "media", "meet", "melon", "melt", "memo", "mend", "menu", "merry", "mesh", "mess", "metal", "meter", "mewl", "mica", "mice", "micro", "mid", "mile", "milk",
+            "mill", "mime", "mind", "mine", "mini", "mint", "mire", "miss", "mist", "moan", "moat", "mock", "mode", "model", "moist", "mold", "mole", "molt", "money", "monk", "month",
+            "mood", "moon", "moor", "moot", "more", "morn", "moss", "most", "moth", "move", "movie", "mow", "mud", "mug", "mule", "mull", "mum", "music", "mute", "myth", "nab",
+            "nail", "name", "nap", "nape", "nary", "navy", "near", "neat", "neck", "need", "nest", "net", "new", "next", "nice", "niche", "nick", "night", "nimble", "nine", "nip",
+            "nit", "noel", "noise", "nomad", "none", "noon", "north", "nose", "note", "novel", "now", "nudge", "null", "numb", "nurse", "nut", "oak", "oath", "obey", "ocean",
+            "octet", "odd", "ode", "off", "offer", "oil", "okay", "old", "olive", "omit", "once", "one", "only", "onto", "open", "optic", "oral", "orb", "order", "organ",
+            "oriole", "other", "otter", "ounce", "oval", "oven", "over", "owl", "own", "pace", "pack", "page", "paid", "pain", "paint", "pair", "pale", "palm", "panda", "panel",
+            "panic", "paper", "parry", "parse", "party", "pass", "past", "patch", "path", "patio", "pause", "pave", "paw", "pay", "pea", "peak", "peal", "pear", "peck", "peel",
+            "peep", "peer", "peg", "pen", "pep", "perch", "perk", "pest", "pet", "pew", "phone", "photo", "piano", "pick", "pie", "piece", "pig", "pile", "pill", "pin", "pine",
+            "pink", "pint", "pipe", "pitch", "pith", "pity", "pizza", "place", "plain", "plane", "plank", "plant", "plate", "play", "plea", "please", "plod", "plot", "plow",
+            "pluck", "plug", "plum", "plus", "plush", "pod", "poem", "point", "poke", "polar", "pole", "pond", "pony", "pool", "pop", "porch", "port", "pose", "posh", "post",
+            "pot", "pouch", "pound", "pour", "pout", "power", "prank", "prawn", "pray", "press", "pretty", "price", "pride", "prime", "print", "prize", "probe", "prod", "prompt",
+            "prone", "proof", "prop", "prose", "proud", "prove", "prune", "pry", "pub", "puff", "pull", "pulp", "pump", "punch", "puny", "pup", "pure", "purge", "purse", "push",
+            "put", "puzzle", "quack", "quad", "quail", "quaint", "quake", "qualm", "quark", "quart", "quash", "quay", "queen", "query", "quest", "queue", "quick", "quiet", "quilt",
+            "quip", "quit", "quiz", "quote", "race", "rack", "rag", "raid", "rail", "rain", "raise", "rake", "rally", "ram", "ramp", "ranch", "range", "rank", "rap", "rare",
+            "rash", "rate", "rave", "raw", "ray", "razor", "read", "real", "realm", "reap", "rear", "rebel", "red", "reef", "reel", "refer", "regal", "relax", "rely", "remit",
+            "renew", "rent", "reply", "rest", "retro", "reuse", "revel", "rhyme", "rib", "rice", "rich", "ride", "ridge", "rife", "rift", "rig", "right", "rile", "rim", "ring",
+            "rinse", "riot", "ripe", "rise", "risk", "rite", "river", "road", "roam", "roar", "roast", "rob", "robe", "rock", "rod", "rogue", "roll", "roof", "room", "root",
+            "rope", "rose", "rosy", "rot", "rough", "round", "route", "rove", "row", "royal", "rub", "ruby", "rude", "rug", "ruin", "rule", "run", "rush", "rust", "rut", "rye",
+            "sack", "safe", "saga", "sage", "sail", "sake", "salad", "sale", "salt", "same", "sand", "sane", "sash", "sate", "save", "saw", "sax", "say", "scale", "scan",
+            "scare", "scarf", "scene", "scent", "school", "scoop", "score", "scorch", "scorn", "scour", "scout", "scowl", "scram", "scrap", "screen", "screw", "scrub", "sea",
+            "seal", "seam", "sear", "seat", "sect", "see", "seek", "seem", "seen", "seep", "seer", "sell", "send", "sense", "sent", "set", "sew", "shade", "shake", "shall", "sham",
+            "shape", "share", "shark", "sharp", "shave", "shawl", "she", "shed", "sheep", "sheer", "sheet", "shelf", "shell", "shine", "ship", "shirt", "shock", "shoe", "shoot",
+            "shop", "shore", "short", "shot", "show", "shred", "shrew", "shrill", "shrub", "shrug", "shun", "shy", "sick", "side", "sigh", "sight", "sign", "silk", "sill",
+            "silly", "silver", "simper", "simple", "sin", "sing", "sink", "sip", "sir", "sit", "six", "size", "skate", "ski", "skill", "skin", "skip", "skirt", "sky", "slab",
+            "slack", "slain", "slam", "slap", "slash", "slate", "slay", "sled", "sleep", "sleet", "slice", "slick", "slide", "slim", "sling", "slip", "slit", "slop", "slot", "slow",
+            "slug", "slum", "slur", "slush", "sly", "small", "smart", "smash", "smell", "smile", "smirk", "smog", "smoke", "smooth", "smug", "snag", "snail", "snake", "snap",
+            "snare", "snarl", "sneak", "sneer", "sniff", "snip", "snob", "snore", "snow", "snug", "soak", "soap", "soar", "sob", "sock", "soda", "sofa", "soft", "soil", "sold",
+            "sole", "solid", "solo", "solve", "some", "son", "song", "soon", "sore", "sort", "soul", "sound", "soup", "sour", "south", "sow", "spa", "space", "span", "spare",
+            "spark", "spasm", "spat", "spawn", "speak", "spear", "speed", "spell", "spend", "spent", "spew", "spice", "spider", "spike", "spill", "spin", "spite", "split", "spoil",
+            "spoke", "sponge", "spoof", "spoon", "sport", "spot", "spray", "spree", "sprig", "spring", "sprout", "spruce", "spud", "spur", "spy", "squall", "square", "squash",
+            "squat", "squeak", "squeal", "squelch", "squid", "squint", "squirt", "stab", "stack", "staff", "stage", "stain", "stair", "stake", "stale", "stall", "stamp", "stand",
+            "star", "stare", "start", "stash", "state", "stay", "stead", "steal", "steam", "steel", "steep", "steer", "stem", "step", "stick", "stiff", "still", "sting", "stir",
+            "stock", "stole", "stone", "stool", "stop", "store", "storm", "story", "stout", "stove", "strap", "straw", "stray", "stream", "street", "stress", "stretch", "strike",
+            "string", "strip", "stripe", "strive", "stroke", "strong", "stub", "stuck", "stud", "study", "stuff", "stump", "stun", "stunt", "style", "sub", "such", "suck", "sudden",
+            "sue", "sugar", "suit", "sulk", "sum", "sun", "sung", "sunk", "super", "sure", "surf", "surge", "surly", "swab", "swag", "swamp", "swan", "swap", "swarm", "sway",
+            "swear", "sweat", "sweep", "sweet", "swell", "swift", "swim", "swing", "swipe", "swirl", "sword", "sync", "syrup", "table", "tack", "tail", "take", "tale", "talk",
+            "tall", "tame", "tan", "tank", "tap", "tape", "tar", "target", "task", "taste", "taut", "taxi", "tea", "teach", "team", "tear", "tease", "tech", "teeth", "tell", "temp",
+            "tend", "tent", "term", "test", "text", "than", "thank", "that", "thaw", "the", "theme", "then", "there", "these", "thick", "thief", "thin", "thing", "think", "third",
+            "this", "thorn", "those", "three", "threw", "throb", "throw", "thrust", "thumb", "thus", "tick", "tide", "tidy", "tie", "tier", "tiger", "tight", "tile", "till", "tilt",
+            "time", "tin", "tinge", "tiny", "tip", "tire", "title", "toad", "toast", "today", "toe", "tofu", "tog", "together", "toil", "token", "told", "toll", "tomb", "tone", "tong",
+            "too", "tool", "tooth", "top", "torch", "tore", "toss", "total", "touch", "tough", "tour", "tow", "tower", "town", "toy", "trace", "track", "trade", "train", "trait",
+            "trap", "trash", "tray", "treat", "tree", "trek", "trend", "trial", "tribe", "trick", "trim", "trio", "trip", "trite", "troll", "troop", "trot", "trout", "true", "trump",
+            "trust", "try", "tub", "tug", "tulip", "tuna", "tune", "turf", "turn", "tutor", "twig", "twin", "twist", "two", "type", "ugly", "undo", "unit", "until", "up", "upon",
+            "urge", "use", "usual", "utter", "vague", "vain", "vale", "valid", "valley", "value", "valve", "van", "vase", "vast", "vat", "vault", "veal", "vegan", "veil", "vein",
+            "vent", "verb", "verse", "very", "vest", "veto", "vex", "via", "vice", "view", "vigil", "villa", "vine", "vinyl", "viola", "violet", "visa", "visit", "vista", "vital",
+            "vivid", "void", "volt", "vote", "vow", "wade", "waffle", "wag", "wage", "wagon", "waif", "wail", "wait", "wake", "walk", "wall", "wand", "want", "war", "ward", "ware",
+            "warm", "warn", "warp", "wash", "waste", "watch", "water", "wave", "wax", "way", "weak", "wealth", "wear", "weave", "web", "wed", "week", "ween", "weep", "weigh",
+            "weird", "well", "west", "wet", "whale", "what", "wheat", "wheel", "when", "where", "which", "while", "whim", "whip", "whirl", "whisk", "white", "who", "whole",
+            "why", "wide", "widow", "width", "wield", "wife", "wild", "will", "wilt", "win", "wind", "wine", "wing", "wink", "wipe", "wire", "wise", "wish", "wit", "witch",
+            "with", "woe", "wolf", "woman", "wonder", "wood", "wool", "word", "work", "world", "worm", "worn", "worry", "worse", "worst", "worth", "would", "wound", "wrap",
+            "wrath", "wreak", "wreck", "wrench"];
+
+        let isPlaying = false;
+        let time = 30;
+        let score = 0;
+        let timerId;
+        let currentWord = '';
+        let bestScore = localStorage.getItem('bestScore') || 0;
+
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const Bscore = document.getElementById('Bscore');
+        const wordInput = document.getElementById('word-input');
+        const currentWordDisplay = document.getElementById('current-word');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const resultPopup = document.getElementById('result-popup');
+        const themeToggle = document.getElementById('theme-toggle');
+
+        function initGame() {
+            showWord();
+            wordInput.value = '';
+            score = 0;
+            time = 60;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = time;
+            wordInput.disabled = false;
+            wordInput.focus();
+        }
+
+        function showWord() {
+            currentWord = words[Math.floor(Math.random() * words.length)];
+            currentWordDisplay.textContent = currentWord;
+        }
+
+        function startTimer() {
+            timerId = setInterval(() => {
+                time--;
+                timerDisplay.textContent = time;
+
+                if (time === 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            Bscore.textContent = bestScore;
+        }
+
+        function endGame() {
+            clearInterval(timerId);
+            isPlaying = false;
+            wordInput.disabled = true;
+            restartBtn.style.display = 'none';
+            startBtn.style.display = 'block';
+
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('bestScore', bestScore);
+            }
+
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('best-score').textContent = bestScore;
+            resultPopup.style.display = 'block';
+
+            Bscore.textContent = bestScore;
+        }
+        Bscore.textContent = bestScore;
+
+        wordInput.addEventListener('input', (e) => {
+            const inputWord = e.target.value.toLowerCase();
+
+            if (inputWord === currentWord) {
+                score++;
+                scoreDisplay.textContent = score;
+                wordInput.classList.add('correct');
+                setTimeout(() => wordInput.classList.remove('correct'), 1000);
+                showWord();
+                e.target.value = '';
+            } else if (currentWord.startsWith(inputWord)) {
+                wordInput.classList.remove('incorrect');
+            } else {
+                wordInput.classList.add('incorrect');
+                setTimeout(() => wordInput.classList.remove('incorrect'), 1000);
+            }
+        });
+
+        startBtn.addEventListener('click', () => {
+            isPlaying = true;
+            startBtn.style.display = 'none';
+            restartBtn.style.display = 'block';
+            initGame();
+            startTimer();
+        });
+
+        restartBtn.addEventListener('click', () => {
+            clearInterval(timerId);
+            startTimer();
+            initGame();
+        });
+
+        document.getElementById('close-btn').addEventListener('click', () => {
+            resultPopup.style.display = 'none';
+        });
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+    </script>
+    <div style="width: 90%; text-align: center; margin: auto;">
+        <h2>Used Prompt to generate this site:</h2><br>
+        <p>Write an HTML, CSS, and JS code at once. and design and develop a typing game. for mobile and desktop both.
+            designs should be modern and have the most animations. in this have browser storage to save Best Scores. If
+            a user loads my website then the user has to press the Start game button to start the game. and there will
+            be a restart button also. restart button will appear only when the game is running. and if the user types
+            then the input field's border blinks for 1-sec green when the user enters the right letter of the word and
+            the border will blink red if the user enters the wrong letter. The user will get notified when the game time
+            ends. and a pop-up will show its game result and have a close button to close the pop-up. and then the user
+            can restart the game. theme should be white and have a modern design. in the game, there is a 30-second
+            timer. if the timer ends game is over. there should be a dark mode toggle button. In the website game, there
+            should be a Score. when a player is playing the game player can see its real-time score at the top. make the
+            design more modern and add some shapes to make it attractive. </p> <br><br>
+        <p style="font-weight: bold; font-size: 20px;">I added more words externally and placed the 'Best Score' text at the top of the game window.</p>
+        <br>
+    </div>
+</body>
+
+</html>
