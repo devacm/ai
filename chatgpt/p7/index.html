@@ -18,6 +18,10 @@
       color: #333;
       overflow-x: hidden;
     }
+    /* When scrolling is locked, add .no-scroll */
+    .no-scroll {
+      overflow: hidden;
+    }
     h1, h2, h3 {
       margin-bottom: 10px;
       text-align: center;
@@ -102,7 +106,7 @@
       border-radius: 5px;
       position: relative;
       width: 100%;
-      padding-bottom: 100%; /* maintain square shape */
+      padding-bottom: 100%;
       overflow: hidden;
     }
     /* Draggable/Swipable tile inside a cell */
@@ -137,7 +141,7 @@
       outline: 3px dashed #555;
     }
     
-    /* Popup Overlay for Game Over and Win */
+    /* Popup Overlay for Game Over */
     #popup-overlay {
       position: fixed;
       top: 0;
@@ -235,7 +239,7 @@
       <button id="howToPlayBtn">How to Play</button>
       <button id="leaderboardBtn">Leaderboard</button>
       <button id="aboutBtn">About</button>
-      <a href="/prompt.html" style="padding: 0.5rem 1rem; background-color: #4caf50; border-radius: 10px; text-decoration: none; color: white;" target="_blank" rel="noopener noreferrer">Used AI Prompt</a>
+      <a href="/prompt.html" style="padding: 0.5rem 1rem; background-color: #4caf50; border-radius: 5px; text-decoration: none; color: white;" target="_blank" rel="noopener noreferrer">Get Its AI Prompt</a>
     </div>
   </div>
 
@@ -322,16 +326,16 @@
     let gameOver = false;
 
     /* For touch/mouse gesture handling */
-    let activeTile = null; // element reference of the tile being moved
+    let activeTile = null;
     let startX = 0, startY = 0;
-    let fromI = null, fromJ = null; // starting cell indices
+    let fromI = null, fromJ = null;
 
-    /* Instruction steps (customize as needed) */
+    /* Instruction steps */
     const instructions = [
-      "Welcome to 2048 Puzzle Game! In this game, you'll slide numbered tiles to combine them and reach the 2048 tile.",
-      "To play, drag or swipe a tile in one of the four directions. The tile will move exactly one cell in that direction.",
-      "If the adjacent cell is empty, your tile will move there. If it contains a tile with the same number, they will merge to form a tile with double the number.",
-      "Your score increases with each merge. Try to reach the 2048 tile or even higher for a better score!",
+      "Welcome to 2048 Puzzle Game! Slide numbered tiles to combine them and reach the 2048 tile.",
+      "To play, drag or swipe a tile in one of the four directions. The tile will move exactly one cell.",
+      "If the adjacent cell is empty, your tile will move there. If it contains a tile with the same number, they merge.",
+      "Your score increases with each merge. Try to reach 2048 or beyond for a higher score!",
       "Good luck and have fun playing the game!"
     ];
     let instructionIndex = 0;
@@ -362,7 +366,6 @@
     const closeInstructionsBtn = document.getElementById('closeInstructionsBtn');
 
     /* ============ Local Storage Helpers ============ */
-    // Load best score and settings from localStorage.
     function loadLocalStorage() {
       bestScore = parseInt(localStorage.getItem("bestScore")) || 0;
       bestScoreDisplay.innerText = `Best: ${bestScore}`;
@@ -380,7 +383,6 @@
         gameoverSound.muted = !soundToggle.checked;
       }
     }
-    // Save best score and settings to localStorage.
     function saveBestScore() {
       localStorage.setItem("bestScore", bestScore);
     }
@@ -388,7 +390,6 @@
       localStorage.setItem("theme", themeSelect.value);
       localStorage.setItem("soundEnabled", soundToggle.checked);
     }
-    // Save that instructions have been shown.
     function markInstructionsShown() {
       localStorage.setItem("instructionsShown", "true");
     }
@@ -397,9 +398,7 @@
     function showInstructionStep() {
       instructionTitle.innerText = "How to Play";
       instructionText.innerText = instructions[instructionIndex];
-      // Hide the "Previous" button on the first step.
       prevBtn.style.display = (instructionIndex === 0) ? "none" : "inline-block";
-      // Change "Next" button to "Got it!" on the final step.
       if (instructionIndex === instructions.length - 1) {
         nextBtn.style.display = "none";
         closeInstructionsBtn.style.display = "inline-block";
@@ -454,12 +453,10 @@
     document.getElementById('aboutBtn').addEventListener('click', () => {
       alert("2048 Puzzle Game - One-Cell Drag Edition");
     });
-    // Theme change event
     themeSelect.addEventListener('change', function() {
       document.body.className = this.value;
       saveSettings();
     });
-    // Sound toggle event
     soundToggle.addEventListener('change', function() {
       bgMusic.muted = !this.checked;
       moveSound.muted = !this.checked;
@@ -472,6 +469,8 @@
     function startGame() {
       menu.style.display = 'none';
       gameContainer.style.display = 'block';
+      // Lock scrolling by adding a class to body
+      document.body.classList.add("no-scroll");
       resetBoard();
       updateBoard();
       score = 0;
@@ -483,6 +482,8 @@
     function returnToMenu() {
       gameContainer.style.display = 'none';
       menu.style.display = 'flex';
+      // Unlock scrolling when leaving the game
+      document.body.classList.remove("no-scroll");
       bgMusic.pause();
     }
     function restartGame() {
@@ -631,7 +632,10 @@
       }
       if (emptyTiles.length > 0) {
         const { i, j } = emptyTiles[Math.floor(Math.random() * emptyTiles.length)];
-        board[i][j] = Math.random() < 0.9 ? 2 : 4;
+        // Allowed new tile numbers: 2, 4, 8, 16, 32 (consecutive powers of 2)
+        const allowedValues = [2, 4, 8, 16, 32];
+        const randomValue = allowedValues[Math.floor(Math.random() * allowedValues.length)];
+        board[i][j] = randomValue;
       }
     }
 
@@ -681,15 +685,20 @@
       }
     }
 
+    // Prevent scrolling on touch devices while playing the game
+    document.addEventListener('touchmove', function(e) {
+      if (gameContainer.style.display === 'block') {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
     // When the page loads, load settings, best score, and show instructions if needed.
     window.onload = function() {
       loadLocalStorage();
-      // Check if instructions have been shown before.
       if (!localStorage.getItem("instructionsShown")) {
         openInstructions();
       }
     }
   </script>
-  
 </body>
 </html>
