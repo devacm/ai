@@ -106,7 +106,7 @@
       border-radius: 5px;
       position: relative;
       width: 100%;
-      padding-bottom: 100%;
+      padding-bottom: 100%; /* maintain square shape */
       overflow: hidden;
     }
     /* Draggable/Swipable tile inside a cell */
@@ -239,7 +239,7 @@
       <button id="howToPlayBtn">How to Play</button>
       <button id="leaderboardBtn">Leaderboard</button>
       <button id="aboutBtn">About</button>
-      <a href="/prompt.html" style="padding: 0.5rem 1rem; background-color: #4caf50; border-radius: 5px; text-decoration: none; color: white;" target="_blank" rel="noopener noreferrer">Get Its AI Prompt</a>
+      <a href="/prompt.html" style="padding: 0.5rem 1rem; background-color: #4caf50; border-radius: 10px; text-decoration: none; color: white;" target="_blank" rel="noopener noreferrer">Used AI Prompt</a>
     </div>
   </div>
 
@@ -477,6 +477,8 @@
       updateScore();
       gameOver = false;
       gamePaused = false;
+      // Ensure bgMusic loops continuously
+      bgMusic.loop = true;
       bgMusic.play();
     }
     function returnToMenu() {
