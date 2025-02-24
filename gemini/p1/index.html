@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Egg Tracker</title>
+    <style>
+        /* Global box-sizing */
+        * {
+          box-sizing: border-box;
+          user-select: none;
+        }
+/*To hide the highlights of the website*/
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          background-color: #f9f9f9;
+          margin: 20px;
+          color: #333;
+        }
+
+        .top-bar {
+          display: flex;
+          justify-content: space-around;
+          width: 80%;
+          max-width: 600px;
+          padding: 15px 0;
+          margin-bottom: 25px;
+          background-color: #ffffff;
+          border-radius: 10px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .counter {
+          text-align: center;
+        }
+
+        .counter span {
+          font-size: 1.5em;
+          font-weight: bold;
+          color: #007bff;
+          display: block;
+          transition: color 0.3s ease;
+        }
+        .counter:hover span {
+          color: #0056b3;
+        }
+
+        .transactions-container {
+          width: 80%;
+          max-width: 600px;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          margin-bottom: 25px;
+          overflow-y: auto;
+          height: 250px; /* Fixed height */
+          padding: 15px;
+          background-color: white;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+          transition: box-shadow 0.3s ease;
+        }
+        .transactions-container:hover {
+          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .transaction-header, .transaction-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 10px 0;
+          border-bottom: 1px dashed #eee;
+          transition: background-color 0.3s ease;
+        }
+        .transaction-header {
+          font-weight: 600;
+          color: #555;
+        }
+        .transaction-row:last-child {
+          border-bottom: none;
+        }
+        .transaction-row:hover {
+          background-color: #f0f0f0;
+        }
+        /* Centering the "No Data Found" message */
+        .no-data {
+          justify-content: center;
+          color: #777;
+          font-style: italic;
+        }
+
+        .input-pad-section {
+          width: 80%;
+          max-width: 600px;
+          margin-bottom: 25px;
+          text-align: center;
+        }
+
+        .input-pad-title {
+          font-size: 1.2em;
+          font-weight: bold;
+          margin-bottom: 10px;
+          color: #555;
+          opacity: 0.8;
+          transition: opacity 0.3s ease;
+        }
+        .input-pad-title:hover {
+          opacity: 1;
+        }
+
+        .input-pad {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 15px;
+          max-width: 330px;
+          margin: 0 auto;
+        }
+
+        .input-button {
+          padding: 20px;
+          border-radius: 20px;
+          border: none;
+          background-color: #007bff;
+          color: white;
+          cursor: pointer;
+          font-size: 1.2em;
+          font-weight: bold;
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          transition: transform 0.2s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .input-button:hover {
+          background-color: #0056b3;
+          transform: scale(1.05);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .input-button:active {
+          transform: scale(0.95);
+          box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .settings-section {
+          width: 80%;
+          max-width: 600px;
+          padding: 25px;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          background-color: white;
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+          transition: box-shadow 0.3s ease;
+        }
+        .settings-section:hover {
+          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .settings-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .settings-row label {
+          margin-right: 15px;
+          font-weight: 500;
+        }
+
+        .settings-row input[type="number"] {
+          padding: 12px;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+          width: 65%;
+          font-size: 1em;
+          transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .settings-row input[type="number"]:focus {
+          border-color: #007bff;
+          box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+          outline: none;
+        }
+
+        .settings-buttons {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 25px;
+        }
+
+        .button {
+          padding: 12px 20px;
+          border: none;
+          border-radius: 7px;
+          background-color: #28a745;
+          color: white;
+          cursor: pointer;
+          font-size: 1em;
+          box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+          transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        }
+        .button.clear {
+          background-color: #dc3545;
+        }
+        .button:hover {
+          opacity: 0.9;
+          transform: translateY(-2px);
+          box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+        }
+        .button:active {
+          transform: translateY(0);
+          box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .user-guide-section {
+          width: 80%;
+          max-width: 600px;
+          padding: 20px;
+          margin-top: 20px;
+          margin-bottom: 25px;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          background-color: #f8f8f8;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          font-size: 0.9em;
+          color: #666;
+          line-height: 1.6;
+          transition: box-shadow 0.3s ease;
+        }
+        .user-guide-section:hover {
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .user-guide-section h3 {
+          color: #007bff;
+          margin-top: 0;
+          margin-bottom: 10px;
+        }
+
+        .user-guide-section p {
+          margin-bottom: 10px;
+        }
+
+        .popup-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+
+        .popup-container {
+          background-color: white;
+          padding: 30px;
+          border-radius: 15px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+          text-align: center;
+          max-width: 500px;
+          opacity: 0;
+          transform: translateY(-50px);
+          animation: fadeInOut 0.5s ease-out forwards;
+          animation-delay: 0.1s;
+          animation-fill-mode: forwards;
+        }
+
+        @keyframes fadeInOut {
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .popup-container h2 {
+          color: #007bff;
+          margin-top: 0;
+        }
+
+        .popup-container p {
+          margin-bottom: 20px;
+          line-height: 1.6;
+        }
+
+        .popup-button {
+          padding: 12px 25px;
+          border: none;
+          border-radius: 7px;
+          background-color: #007bff;
+          color: white;
+          cursor: pointer;
+          font-size: 1em;
+          transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .popup-button:hover {
+          background-color: #0056b3;
+          transform: scale(1.03);
+        }
+        .popup-button:active {
+          transform: scale(0.98);
+        }
+
+        .popup-hidden {
+          display: none !important;
+        }
+
+        /* Custom Alert & Confirm Styles */
+        .custom-alert-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0,0,0,0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1100;
+        }
+        .custom-alert-container {
+          background-color: white;
+          padding: 20px;
+          border-radius: 10px;
+          max-width: 400px;
+          width: 80%;
+          text-align: center;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .custom-alert-container p {
+          margin-bottom: 20px;
+          color: #333;
+          font-size: 1em;
+        }
+        .custom-alert-button {
+          padding: 10px 20px;
+          border: none;
+          border-radius: 5px;
+          background-color: #007bff;
+          color: white;
+          cursor: pointer;
+          font-size: 1em;
+        }
+        .custom-alert-button:hover {
+          background-color: #0056b3;
+        }
+
+        .custom-alert-hidden {
+          display: none !important;
+        }
+
+        .custom-confirm-container {
+          background-color: white;
+          padding: 20px;
+          border-radius: 10px;
+          max-width: 400px;
+          width: 80%;
+          text-align: center;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .custom-confirm-container p {
+          margin-bottom: 20px;
+          color: #333;
+          font-size: 1em;
+        }
+        .custom-confirm-buttons {
+          display: flex;
+          justify-content: space-around;
+        }
+        .custom-confirm-button {
+          padding: 10px 20px;
+          border: none;
+          border-radius: 5px;
+          background-color: #007bff;
+          color: white;
+          cursor: pointer;
+          font-size: 1em;
+          min-width: 80px;
+        }
+        .custom-confirm-button:hover {
+          background-color: #0056b3;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+          .top-bar,
+          .transactions-container,
+          .input-pad-section,
+          .settings-section,
+          .user-guide-section {
+            width: 95%;
+          }
+          .input-pad {
+            max-width: 280px;
+            grid-template-columns: repeat(3, 1fr);
+          }
+          .input-button {
+            padding: 16px;
+            font-size: 1em;
+          }
+          .settings-row {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .settings-row label {
+            margin-bottom: 5px;
+          }
+          .settings-row input[type="number"] {
+            width: 100%;
+          }
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="counter">
+        Eaten: <span id="eaten-count">0</span>
+    </div>
+    <div class="counter">
+        Rest: <span id="rest-count">0</span>
+    </div>
+    <div class="counter">
+        Total: <span id="total-count">0</span>
+    </div>
+</div>
+
+<div class="transactions-container">
+    <div class="transaction-header">
+        <span>Date</span>
+        <span>Quantity</span>
+    </div>
+    <div id="transactions-list"></div>
+</div>
+
+<div class="input-pad-section">
+    <h3 class="input-pad-title">How many eggs are eaten?</h3>
+    <div class="input-pad">
+        <button class="input-button" onclick="addEggs(1)">1</button>
+        <button class="input-button" onclick="addEggs(2)">2</button>
+        <button class="input-button" onclick="addEggs(3)">3</button>
+        <button class="input-button" onclick="addEggs(4)">4</button>
+        <button class="input-button" onclick="addEggs(5)">5</button>
+        <button class="input-button" onclick="addEggs(6)">6</button>
+        <button class="input-button" onclick="addEggs(7)">7</button>
+        <button class="input-button" onclick="addEggs(8)">8</button>
+        <button class="input-button" onclick="addEggs(9)">9</button>
+    </div>
+</div>
+
+<div class="settings-section">
+    <div class="settings-row">
+        <label for="total-eggs">Total Number of Eggs:</label>
+        <input type="number" id="total-eggs" value="30">
+    </div>
+    <div class="settings-row">
+        <label for="rest-eggs">Rest Eggs:</label>
+        <input type="number" id="rest-eggs" value="30">
+    </div>
+    <div class="settings-row">
+        <label for="eaten-eggs">Eaten Eggs:</label>
+        <input type="number" id="eaten-eggs" value="0">
+    </div>
+
+    <div class="settings-buttons">
+        <button class="button clear" onclick="clearAllData()">Clear all data</button>
+        <button class="button" onclick="updateSetup()">Update</button>
+    </div>
+</div>
+
+<div class="user-guide-section">
+    <h3>How to Use Egg Tracker</h3>
+    <p><strong>Welcome to Egg Tracker!</strong> This simple app helps you keep track of your daily egg consumption.</p>
+    <p><strong>Adding Eaten Eggs:</strong> To record the number of eggs you've eaten, simply click on the number buttons (1-9) in the 'Eat Eggs' section. Each click will add a new transaction with the current date and the quantity of eggs you've eaten.</p>
+    <p><strong>View Transactions:</strong> All your recorded egg transactions are listed in the 'Transactions' section. You can scroll through this list to review your history. Each entry shows the date and quantity of eggs eaten.</p>
+    <p><strong>Setup & Counters:</strong></p>
+    <ul>
+        <li><strong>Total Number of Eggs:</strong> Initially, and whenever you get a new batch of eggs, set the total number of eggs you have.</li>
+        <li><strong>Rest Eggs:</strong> This field shows the current number of eggs remaining from your total. It automatically decreases as you eat eggs. You can also manually adjust this if needed.</li>
+        <li><strong>Eaten Eggs:</strong> This counter tracks the total number of eggs you've recorded as eaten. You can also set an initial value if you're starting mid-batch.</li>
+        <li>Click the <strong>'Update'</strong> button after setting or changing any values in the 'Set-up' section to apply your changes.</li>
+    </ul>
+    <p><strong>Clear All Data:</strong> If you wish to start fresh, you can click the 'Clear all data' button. Please note, this will erase all recorded transactions and reset the counters to their default values. You will be asked to confirm this action to prevent accidental data loss.</p>
+    <p>Egg Tracker uses your browser's local storage to save your data, ensuring your information is preserved even after you close the browser. Enjoy tracking your eggs!</p>
+</div>
+
+<!-- First Visit Popup -->
+<div id="firstVisitPopup" class="popup-overlay popup-hidden">
+    <div class="popup-container">
+        <h2>Welcome to Egg Tracker!</h2>
+        <p>Let's take a quick tour to get you started:</p>
+        <ol style="list-style-position: inside; padding-left: 0;">
+            <li><strong>Top Counters:</strong> At the top, you'll see 'Eaten', 'Rest', and 'Total' egg counts.</li>
+            <li><strong>Transactions:</strong> Below, transactions will appear when you log eaten eggs.</li>
+            <li><strong>Eat Eggs Section:</strong> Use the number buttons in the 'Eat Eggs' section to record eaten eggs.</li>
+            <li><strong>Settings:</strong> Adjust total eggs, rest eggs, and eaten eggs in the 'Set-up' section.</li>
+            <li><strong>Clear Data:</strong> Use 'Clear all data' in settings to reset everything.</li>
+        </ol>
+        <p>Click 'Got it!' to start tracking your eggs.</p>
+        <button class="popup-button" onclick="closePopup()">Got it!</button>
+    </div>
+</div>
+
+<!-- Custom Alert Modal -->
+<div id="customAlert" class="custom-alert-overlay custom-alert-hidden">
+    <div class="custom-alert-container">
+        <p id="customAlertMessage">Alert message goes here.</p>
+        <button class="custom-alert-button" onclick="closeCustomAlert()">OK</button>
+    </div>
+</div>
+
+<!-- Custom Confirm Modal -->
+<div id="customConfirm" class="custom-alert-overlay custom-alert-hidden">
+    <div class="custom-confirm-container">
+        <p id="customConfirmMessage">Confirm message goes here.</p>
+        <div class="custom-confirm-buttons">
+            <button class="custom-confirm-button" onclick="customConfirmYes()">Yes</button>
+            <button class="custom-confirm-button" onclick="customConfirmNo()">No</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const eatenCountSpan = document.getElementById('eaten-count');
+    const restCountSpan = document.getElementById('rest-count');
+    const totalCountSpan = document.getElementById('total-count');
+    const transactionsListDiv = document.getElementById('transactions-list');
+    const totalEggsInput = document.getElementById('total-eggs');
+    const restEggsInput = document.getElementById('rest-eggs');
+    const eatenEggsInput = document.getElementById('eaten-eggs');
+    const firstVisitPopup = document.getElementById('firstVisitPopup');
+
+    let eatenEggs = 0;
+    let restEggs = 0;
+    let totalEggs = 30; // Default total eggs
+    let transactions = [];
+
+    // Custom Alert & Confirm Elements
+    const customAlert = document.getElementById('customAlert');
+    const customAlertMessage = document.getElementById('customAlertMessage');
+    const customConfirm = document.getElementById('customConfirm');
+    const customConfirmMessage = document.getElementById('customConfirmMessage');
+    let confirmCallback = null;
+    let alertCallback = null;
+
+    // Function to format a Date object to dd/mm/yyyy format
+    function formatDate(date) {
+      let day = date.getDate();
+      let month = date.getMonth() + 1; // Months are zero-indexed
+      const year = date.getFullYear();
+      day = day < 10 ? '0' + day : day;
+      month = month < 10 ? '0' + month : month;
+      return day + '/' + month + '/' + year;
+    }
+
+    // Show custom alert
+    function showAlert(message, callback) {
+      customAlertMessage.textContent = message;
+      customAlert.classList.remove('custom-alert-hidden');
+      alertCallback = callback;
+    }
+
+    function closeCustomAlert() {
+      customAlert.classList.add('custom-alert-hidden');
+      if (alertCallback) {
+        alertCallback();
+        alertCallback = null;
+      }
+    }
+
+    // Show custom confirm
+    function showConfirm(message, callback) {
+      customConfirmMessage.textContent = message;
+      customConfirm.classList.remove('custom-alert-hidden');
+      confirmCallback = callback;
+    }
+
+    function customConfirmYes() {
+      customConfirm.classList.add('custom-alert-hidden');
+      if (confirmCallback) {
+        confirmCallback(true);
+        confirmCallback = null;
+      }
+    }
+
+    function customConfirmNo() {
+      customConfirm.classList.add('custom-alert-hidden');
+      if (confirmCallback) {
+        confirmCallback(false);
+        confirmCallback = null;
+      }
+    }
+
+    // Function to show the first visit popup
+    function showFirstVisitPopup() {
+      firstVisitPopup.classList.remove('popup-hidden');
+      localStorage.setItem('notFirstVisit', 'true');
+    }
+
+    // Function to close the first visit popup
+    function closePopup() {
+      firstVisitPopup.classList.add('popup-hidden');
+    }
+
+    // Load data from local storage
+    function loadData() {
+      const storedEaten = localStorage.getItem('eatenEggs');
+      const storedRest = localStorage.getItem('restEggs');
+      const storedTotal = localStorage.getItem('totalEggs');
+      const storedTransactions = localStorage.getItem('transactions');
+      const notFirstVisit = localStorage.getItem('notFirstVisit');
+
+      eatenEggs = storedEaten ? parseInt(storedEaten) : 0;
+      restEggs = storedRest ? parseInt(storedRest) : (storedTotal ? parseInt(storedTotal) : 30);
+      totalEggs = storedTotal ? parseInt(storedTotal) : 30;
+      transactions = storedTransactions ? JSON.parse(storedTransactions) : [];
+
+      eatenCountSpan.textContent = eatenEggs;
+      restCountSpan.textContent = restEggs;
+      totalCountSpan.textContent = totalEggs;
+      totalEggsInput.value = totalEggs;
+      restEggsInput.value = restEggs;
+      eatenEggsInput.value = eatenEggs;
+
+      renderTransactions();
+
+      if (!notFirstVisit) {
+        showFirstVisitPopup();
+      }
+    }
+
+    // Save data to local storage
+    function saveData() {
+      localStorage.setItem('eatenEggs', eatenEggs.toString());
+      localStorage.setItem('restEggs', restEggs.toString());
+      localStorage.setItem('totalEggs', totalEggs.toString());
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+
+    // Render transactions with a fixed container height.
+    // If there are no transactions, display "No Data Found."
+    function renderTransactions() {
+      transactionsListDiv.innerHTML = '';
+      if (transactions.length === 0) {
+        const noDataRow = document.createElement('div');
+        noDataRow.classList.add('transaction-row', 'no-data');
+        const noDataText = document.createElement('span');
+        noDataText.textContent = 'No Data Found';
+        noDataRow.appendChild(noDataText);
+        transactionsListDiv.appendChild(noDataRow);
+      } else {
+        transactions.slice().reverse().forEach(transaction => {
+          const transactionRow = document.createElement('div');
+          transactionRow.classList.add('transaction-row');
+          const dateSpan = document.createElement('span');
+          dateSpan.textContent = transaction.date;
+          const quantitySpan = document.createElement('span');
+          quantitySpan.textContent = transaction.quantity;
+          transactionRow.appendChild(dateSpan);
+          transactionRow.appendChild(quantitySpan);
+          transactionsListDiv.appendChild(transactionRow);
+        });
+      }
+    }
+
+    function addEggs(quantity) {
+      if (restEggs >= quantity) {
+        eatenEggs += quantity;
+        restEggs -= quantity;
+        const now = new Date();
+        transactions.push({
+          date: formatDate(now) + ' ' + now.toLocaleTimeString(),
+          quantity: quantity
+        });
+        eatenCountSpan.textContent = eatenEggs;
+        restCountSpan.textContent = restEggs;
+        renderTransactions();
+        saveData();
+      } else {
+        showAlert("Not enough eggs left!");
+      }
+    }
+
+    function updateSetup() {
+      totalEggs = parseInt(totalEggsInput.value);
+      restEggs = parseInt(restEggsInput.value);
+      eatenEggs = parseInt(eatenEggsInput.value);
+
+      if (restEggs + eatenEggs > totalEggs) {
+        showAlert("The sum of Rest Eggs and Eaten Eggs cannot be greater than Total Eggs.");
+        return;
+      }
+
+      totalCountSpan.textContent = totalEggs;
+      restCountSpan.textContent = restEggs;
+      eatenCountSpan.textContent = eatenEggs;
+      renderTransactions();
+      saveData();
+    }
+
+    function clearAllData() {
+      showConfirm("Are you sure you want to clear all data? This action cannot be undone.", function(confirmed) {
+        if (confirmed) {
+          localStorage.clear();
+          eatenEggs = 0;
+          restEggs = totalEggs;
+          transactions = [];
+
+          eatenCountSpan.textContent = eatenEggs;
+          restCountSpan.textContent = restEggs;
+          totalCountSpan.textContent = totalEggs;
+          transactionsListDiv.innerHTML = '';
+          eatenEggsInput.value = 0;
+          restEggsInput.value = totalEggs;
+          saveData();
+          loadData();
+        }
+      });
+    }
+
+    // Load data on page load
+    loadData();
+</script>
+
+</body>
+</html>
