@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OutLay - Daily Income & Expense Tracker</title>
+    <style>
+        /* Additional CSS by Abhinit */
+        .PopPreBTN1{
+            padding: 10px 20px;
+            background-color: red;
+            color: white;
+            outline: none;
+            border: none;
+            border-radius: 5px ;
+        }
+        .cancel{
+            padding: 10px 20px;
+            background-color: rgb(71, 71, 71);
+            color: white;
+            outline: none;
+            border: none;
+            border-radius: 5px ;
+        }
+
+
+        /* Enhanced CSS Styling - Modern and Beautiful */
+        :root {
+            --primary-color: #2962ff; /* Vibrant Blue */
+            --primary-color-darker: #0d47a1;
+            --secondary-color: #64b5f6; /* Light Blue */
+            --accent-color: #ffca28; /* Yellow Accent */
+            --background-light: #f8f9fa;
+            --background-dark: #e0e0e0;
+            --text-primary: #333;
+            --text-secondary: #555;
+            --text-light: #fff;
+            --border-color: #ddd;
+            --success-color: #4caf50; /* Green Success Color */
+            --error-color: #f44336;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif; /* Modern Font */
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-light);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 1200px; /* Wider container for larger screens */
+            margin: 0 auto; /* Adjusted top margin */
+            padding: 25px 25px; /* Adjusted padding */
+            background-color: var(--text-light);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); /* Softer shadow */
+            border-radius: 10px; /* More rounded corners */
+            overflow: hidden; /* For rounded corners with shadow */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure container takes full viewport height */
+        }
+
+        /* Mobile Action Bar Styles */
+        .mobile-action-bar {
+            display: none; /* Hidden by default on larger screens */
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 10px 15px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mobile-action-bar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .mobile-menu-button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        .mobile-menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 50px; /* Adjust as needed to position below the action bar */
+            right: 10px;
+            background-color: var(--text-light);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1001; /* Above popup overlay if needed */
+            padding: 10px 0;
+        }
+
+        .mobile-menu-dropdown.show {
+            display: block;
+        }
+
+        .mobile-menu-item {
+            display: block;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: var(--text-primary);
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .mobile-menu-item:hover {
+            background-color: var(--background-light);
+        }
+
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 0.5em;
+            font-weight: 800; /* Stronger font weight */
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            color: var(--text-secondary);
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+            font-weight: 700;
+        }
+
+        .date-heading {
+            text-align: center;
+            font-size: 1.1em;
+            color: var(--text-secondary);
+            margin-bottom: 1.5em;
+            font-weight: 600;
+        }
+
+        .summary-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 2.5em;
+            flex-wrap: wrap; /* Allow boxes to wrap on smaller screens */
+        }
+
+        .summary-box {
+            background-color: var(--background-light);
+            padding: 20px; /* Adjusted padding */
+            border-radius: 8px;
+            text-align: center;
+            width: calc(50% - 15px); /* Slightly wider summary boxes with spacing */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Subtle box shadow */
+            transition: transform 0.3s ease-in-out; /* Hover effect */
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px; /* Spacing between boxes when wrapped */
+        }
+
+        /* Disable hover effect on smaller screens (touch devices) */
+        @media (hover: hover) and (pointer: fine) {
+            .summary-box:hover {
+                transform: translateY(-5px);
+            }
+        }
+
+        .summary-box h3 {
+            margin-top: 0;
+            color: var(--text-primary);
+            font-size: 1em;
+            font-weight: 600;
+            margin-bottom: 0.4em;
+        }
+
+        .summary-box p {
+            font-size: 1.8em; /* Larger amount text */
+            font-weight: 900; /* Stronger amount text */
+            margin: 0.5em 0;
+            color: var(--primary-color); /* Amount in primary color */
+        }
+        .summary-box.balance-box p {
+            color: var(--success-color); /* Balance amount in success color (Green) */
+        }
+
+
+        /* Change Total Expense color to red */
+        #totalExpense {
+            color: var(--error-color);
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--accent-color); /* Accent color FAB */
+            color: var(--text-primary);
+            border: none;
+            border-radius: 50%;
+            width: 60px; /* Adjusted FAB size */
+            height: 60px;
+            font-size: 2em; /* Adjusted plus sign */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* More pronounced shadow */
+            transition: background-color 0.3s ease;
+        }
+
+        .fab:hover {
+            background-color: #ffda6a; /* Lighter accent on hover */
+        }
+
+        /* Transaction Page Styles */
+        .transaction-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px; /* Adjusted padding */
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--background-light); /* Item background */
+            border-radius: 6px; /* Rounded item corners */
+            margin-bottom: 8px; /* Spacing between items */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04); /* Item shadow */
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-details {
+            flex-grow: 1;
+        }
+
+        .transaction-date {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .transaction-source {
+            font-size: 0.9em;
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .transaction-description {
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            font-size: 1em;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .transaction-actions button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            transition: color 0.3s ease;
+        }
+
+        .transaction-actions button:hover {
+            color: var(--primary-color);
+        }
+
+        .add-transaction-btn-top {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 1.5em;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .add-transaction-btn-top:hover {
+            background-color: var(--primary-color-darker);
+        }
+
+        /* Analyze Data Page Styles */
+        .chart-container {
+            margin-bottom: 2.5em;
+            height: 300px; /* Fixed height for chart container */
+        }
+
+        .chart {
+            width: 100%;
+            height: 100%; /* Chart takes full height of container */
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--background-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-style: italic;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+            text-align: center; /* Center text within chart placeholders */
+        }
+
+        .date-range-selector {
+            margin-bottom: 1.5em;
+            display: flex;
+            justify-content: center;
+            gap: 8px; /* Spacing between buttons */
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+        }
+
+        .date-range-selector button {
+            background-color: var(--background-light);
+            border: 1px solid var(--border-color);
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            margin-bottom: 5px; /* Spacing for wrapped buttons */
+        }
+
+        .date-range-selector button.active,
+        .date-range-selector button:hover {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border-color: var(--primary-color);
+        }
+
+        /* Popup Styles */
+        .popup-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Darker semi-transparent background */
+            justify-content: center;
+            align-items: center;
+            z-index: 1002; /* Ensure it's on top of action bar */
+            backdrop-filter: blur(5px); /* Optional blur effect */
+        }
+
+        .popup-content {
+            background-color: var(--text-light);
+            padding: 25px; /* Adjusted popup padding */
+            border-radius: 10px; /* Rounded popup corners */
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2); /* More pronounced popup shadow */
+            width: 90%; /* Adjusted popup width for responsiveness */
+            max-width: 500px; /* Wider popup */
+        }
+
+        .popup-header {
+            text-align: center;
+            margin-bottom: 1.5em;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1.6em;
+        }
+
+        .form-group {
+            margin-bottom: 1.2em;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group select,
+        .form-group textarea { /* Include textarea for backup text */
+            width: 100%;
+            padding: 10px; /* Adjusted input padding */
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box; /* To include padding in width */
+            margin-bottom: 0.4em;
+        }
+
+        .form-group textarea {
+            font-family: monospace; /* Monospace font for backup text */
+            resize: vertical; /* Allow vertical resizing */
+            min-height: 150px;
+        }
+
+
+        .form-group input[type="radio"] {
+            display: none; /* Hide default radio buttons */
+        }
+
+        .transaction-type-selector {
+            display: flex;
+            justify-content: flex-start;
+            gap: 8px;
+            margin-bottom: 0.8em;
+        }
+
+        .transaction-type-button {
+            background-color: var(--background-light);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+            flex: 1;
+            font-size: 0.9em;
+        }
+
+        .transaction-type-button.income {
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .transaction-type-button.expense {
+            border-color: var(--error-color);
+            color: var(--error-color);
+        }
+
+
+        .transaction-type-button.selected {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border-color: var(--primary-color);
+        }
+        .transaction-type-button.selected.income {
+            background-color: var(--success-color);
+            color: var(--text-light);
+            border-color: var(--success-color);
+        }
+
+        .transaction-type-button.selected.expense {
+            background-color: var(--error-color);
+            color: var(--text-light);
+            border-color: var(--error-color);
+        }
+
+
+        .popup-actions {
+            text-align: right;
+            margin-top: 1.5em;
+        }
+
+        .popup-actions button {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border: none;
+            padding: 10px 20px; /* Adjusted padding for buttons */
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .popup-actions button:first-child {
+            margin-left: 0;
+        }
+
+        .popup-actions button.cancel {
+            background-color: var(--error-color);
+        }
+
+        .popup-actions button:hover {
+            background-color: var(--primary-color-darker);
+        }
+
+        .popup-actions button.cancel:hover {
+            background-color: #d32f2f;
+        }
+
+        /* Navigation Styles */
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--background-light);
+            padding: 15px 0; /* Adjusted nav padding */
+            border-bottom: 1px solid var(--border-color);
+            border-radius: 8px 8px 0 0; /* Rounded top corners */
+            margin-bottom: 15px;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+        }
+
+        .nav-button {
+            background: none;
+            border: none;
+            padding: 10px 16px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            margin: 5px; /* Spacing for wrapped buttons */
+            text-align: center; /* Center text in buttons */
+            flex-grow: 1; /* Make buttons take equal width */
+        }
+
+        .nav-button:hover, .nav-button.active {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+        }
+
+        .page {
+            display: none; /* Initially hide all pages */
+        }
+
+        .page.active {
+            display: block; /* Show active page */
+        }
+
+        /* Hint Popup Styles */
+        .hint-popup-content {
+            text-align: center;
+        }
+
+        .hint-popup-actions {
+            text-align: center;
+            margin-top: 1.5em;
+        }
+
+        .hint-popup-content p {
+            font-size: 1em;
+            color: var(--text-secondary);
+            margin-bottom: 1.2em;
+        }
+
+        .hint-popup-header {
+            font-size: 1.4em;
+            color: var(--primary-color);
+            margin-bottom: 0.8em;
+        }
+
+
+        /* Responsive Design Adjustments */
+        @media (max-width: 768px) {
+            .container {
+                margin: 0; /* Remove container margin on mobile */
+                /* padding: 0 0 15px 0; Adjust padding for mobile container */
+                border-radius: 0; /* No container border radius on mobile */
+                box-shadow: none; /* Remove shadow on mobile */
+            }
+
+            .mobile-action-bar {
+                display: flex; /* Show mobile action bar on smaller screens */
+                border-radius: 0; /* No border radius for mobile action bar */
+            }
+
+            .nav {
+                display: none; /* Hide regular nav on smaller screens */
+            }
+
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            h2 {
+                font-size: 1.3em;
+                margin-top: 1.8em;
+            }
+
+            .date-heading {
+                font-size: 1em;
+            }
+
+            .summary-container {
+                margin-bottom: 2em;
+            }
+
+            .summary-box {
+                width: 100%; /* Full width on mobile */
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .summary-box p {
+                font-size: 1.6em;
+            }
+
+            .fab {
+                bottom: 15px;
+                right: 15px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.6em;
+            }
+
+            .transaction-item {
+                padding: 12px;
+            }
+
+            .transaction-date, .transaction-source {
+                font-size: 0.85em;
+            }
+            .transaction-description {
+                font-size: 0.95em;
+            }
+            .transaction-amount {
+                font-size: 1em;
+            }
+
+            .transaction-actions button {
+                font-size: 0.85em;
+                margin-left: 8px;
+            }
+
+            .add-transaction-btn-top {
+                padding: 8px 15px;
+                font-size: 0.9em;
+                margin-bottom: 1.5em;
+            }
+
+            .chart-container {
+                margin-bottom: 6em;
+                height: 250px; /* Adjusted chart height for mobile */
+            }
+
+            .chart {
+                height: 100%; /* Chart takes full height of container */
+            }
+
+            .date-range-selector {
+                margin-bottom: 1.5em;
+                flex-direction: column; /* Stack buttons on mobile */
+                align-items: stretch; /* Full width buttons */
+                gap: 0; /* Remove gap in stacked buttons */
+            }
+
+            .date-range-selector button {
+                margin: 5px 0; /* Spacing for stacked buttons */
+                padding: 10px;
+                font-size: 0.95em;
+                border-radius: 0; /* Square buttons when stacked */
+                border-width: 1px 0; /* Only top and bottom borders when stacked */
+                border-color: var(--border-color);
+            }
+            .date-range-selector button:first-child {
+                border-top-width: 1px; /* Ensure top border on first button */
+            }
+            .date-range-selector button:last-child {
+                border-bottom-width: 1px; /* Ensure bottom border on last button */
+                border-radius: 0 0 6px 6px; /* Bottom rounded corners for last button */
+            }
+            .date-range-selector button.active,
+            .date-range-selector button:hover {
+                border-radius: 0; /* No rounded corners when active or hovered and stacked */
+            }
+            .date-range-selector button.active:last-child,
+            .date-range-selector button:hover:last-child {
+                 border-radius: 0 0 6px 6px; /* Bottom rounded corners for last active/hovered button */
+            }
+
+
+            .popup-content {
+                padding: 20px;
+            }
+
+            .popup-header {
+                font-size: 1.4em;
+                margin-bottom: 1.2em;
+            }
+
+            .form-group {
+                margin-bottom: 1em;
+            }
+            .form-group label {
+                font-size: 0.9em;
+            }
+
+            .form-group input[type="text"],
+            .form-group input[type="number"],
+            .form-group input[type="date"],
+            .form-group select {
+                padding: 8px;
+                font-size: 0.95em;
+            }
+
+            .transaction-type-selector {
+                gap: 5px;
+                margin-bottom: 0.6em;
+            }
+
+            .transaction-type-button {
+                padding: 6px 12px;
+                font-size: 0.85em;
+                border-width: 1.5px;
+            }
+
+            .popup-actions {
+                margin-top: 1.5em;
+            }
+
+            .popup-actions button {
+                padding: 10px 18px;
+                font-size: 0.95em;
+                margin-left: 8px;
+            }
+        }
+
+        /* Tablet View CSS (Action Bar Visible, Nav Hidden) */
+            @media (min-width: 769px) and (max-width: 1024px) {
+            .mobile-action-bar {
+                display: flex; /* Show mobile action bar on tablet */
+                border-radius: 0;
+            }
+
+            .nav {
+                display: none; /* Hide regular nav on tablet */
+            }
+
+            .container {
+                margin: 0; /* Remove container margin on tablet */
+                padding: 0 0 15px 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+             h1 {
+                font-size: 2em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+                margin-top: 2em;
+            }
+
+            .date-heading {
+                font-size: 1.2em;
+            }
+             .summary-box {
+                width: calc(50% - 20px); /* Adjust for tablet summary boxes */
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .summary-box p {
+                font-size: 2em;
+            }
+
+             .fab {
+                bottom: 25px;
+                right: 25px;
+                width: 60px;
+                height: 60px;
+                font-size: 2em;
+            }
+
+            .transaction-item {
+                padding: 15px;
+            }
+
+            .transaction-date, .transaction-source {
+                font-size: 1em;
+            }
+            .transaction-description {
+                font-size: 1.1em;
+            }
+            .transaction-amount {
+                font-size: 1.2em;
+            }
+
+            .transaction-actions button {
+                font-size: 1em;
+                margin-left: 10px;
+            }
+
+            .add-transaction-btn-top {
+                padding: 12px 20px;
+                font-size: 1em;
+                margin-bottom: 2em;
+            }
+
+            .chart-container {
+                margin-bottom: 2.5em;
+                height: 300px;
+            }
+
+            .chart {
+                height: 100%; /* Chart takes full height of container */
+            }
+
+            .date-range-selector {
+                margin-bottom: 2em;
+            }
+
+            .date-range-selector button {
+                padding: 10px 18px;
+                font-size: 1em;
+            }
+
+            .popup-content {
+                padding: 25px;
+            }
+
+            .popup-header {
+                font-size: 1.8em;
+                margin-bottom: 1.5em;
+            }
+
+            .form-group {
+                margin-bottom: 1.5em;
+            }
+            .form-group label {
+                font-size: 1em;
+            }
+
+            .form-group input[type="text"],
+            .form-group input[type="number"],
+            .form-group input[type="date"],
+            .form-group select {
+                padding: 10px;
+                font-size: 1.05em;
+            }
+
+            .transaction-type-selector {
+                gap: 8px;
+                margin-bottom: 1em;
+            }
+
+            .transaction-type-button {
+                padding: 8px 16px;
+                font-size: 0.95em;
+            }
+
+            .popup-actions {
+                margin-top: 2em;
+            }
+
+            .popup-actions button {
+                padding: 12px 22px;
+                font-size: 1.05em;
+                margin-left: 10px;
+            }
+        }
+
+        /* No Hover effect on mobile/touch devices */
+        @media (max-width: 768px) {
+             .summary-box:hover,
+             .date-range-selector button:hover,
+             .date-range-selector button.active:hover,
+             .popup-actions button:hover,
+             .popup-actions button.cancel:hover,
+             .nav-button:hover,
+             .nav-button.active:hover,
+             .fab:hover {
+                transform: none;
+                background-color: inherit;
+                color: inherit;
+                border-color: inherit;
+            }
+            .fab:hover {
+                background-color: #ffda6a; /* Keep FAB hover for non-touch devices if needed */
+            }
+            .popup-actions button:hover {
+                background-color: var(--primary-color-darker); /* Keep button hover for non-touch devices if needed */
+            }
+
+             .popup-actions button.cancel:hover {
+                background-color: #d32f2f; /* Keep cancel button hover for non-touch devices if needed */
+            }
+             .nav-button:hover, .nav-button.active:hover {
+                background-color: var(--primary-color); /* Keep nav button hover for non-touch devices if needed */
+                color: var(--text-light);
+            }
+             .date-range-selector button:hover,
+             .date-range-selector button.active:hover {
+                background-color: var(--primary-color); /* Keep date range button hover for non-touch devices if needed */
+                color: var(--text-light);
+                border-color: var(--primary-color);
+            }
+        }
+
+
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="mobile-action-bar">
+        <div class="mobile-action-bar-title">OutLay</div>
+        <button class="mobile-menu-button" onclick="toggleMobileMenu()">&#8942;</button>
+        <div id="mobileMenuDropdown" class="mobile-menu-dropdown">
+            <a class="mobile-menu-item" onclick="navigateToPage('homepage'); closeMobileMenu();">Home</a>
+            <a class="mobile-menu-item" onclick="navigateToPage('transactionsPage'); closeMobileMenu();">Transactions</a>
+            <a class="mobile-menu-item" onclick="navigateToPage('analyzeDataPage'); closeMobileMenu();">Analyze Data</a>
+            <a class="mobile-menu-item" onclick="openBackupPopup()">Backup Data</a>
+            <a class="mobile-menu-item" onclick="openRestorePopup()">Restore Data</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="nav">
+            <button class="nav-button active" data-page="homepage">Home</button>
+            <button class="nav-button" data-page="transactionsPage">Transactions</button>
+            <button class="nav-button" data-page="analyzeDataPage">Analyze Data</button>
+            <button class="nav-button" onclick="openBackupPopup()">Backup Data</button>
+            <button class="nav-button" onclick="openRestorePopup()">Restore Data</button>
+        </div>
+
+        <div id="homepage" class="page active">
+            <h2 class="date-heading" id="currentDate"></h2>
+            <div class="summary-container">
+                <div class="summary-box">
+                    <h3>Total Income</h3>
+                    <p id="totalIncome">₹0</p>
+                </div>
+                <div class="summary-box">
+                    <h3>Total Expense</h3>
+                    <p id="totalExpense">₹0</p>
+                </div>
+                <div class="summary-box balance-box">
+                    <h3>Balance</h3>
+                    <p id="balanceAmount">₹0</p>
+                </div>
+            </div>
+            <h2>Recent Transactions</h2>
+            <ul class="transaction-list" id="recentTransactionsList">
+                <li>No recent transactions.</li>
+            </ul>
+            <h2>Income vs Expense Graph</h2>
+            <div class="chart-container">
+                <canvas id="incomeExpenseChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+<!-- About the web app OutLay  -->
+ <div style="width: 90%; text-align: center; margin: auto;">
+    <h2>OutLay: AI-Powered Web App, Android Ready</h2>
+    <p>OutLay began as a web application meticulously crafted with the assistance of advanced AI tools, specifically Gemini.  Its intuitive design and robust functionality for managing daily income and expenses were then expertly adapted for the Android platform by Abhinit, bringing this helpful financial tool directly to mobile users.</p>
+    <a href="https://devacm.github.io/ai/gemini/p2/OutLay(Official & Safe).apk" target="_blank" rel="noopener noreferrer"></a>
+ </div>
+
+        <div id="transactionsPage" class="page">
+            <h2>All Transactions</h2>
+            <button class="add-transaction-btn-top" onclick="openAddTransactionPopup()">+ Add Transaction</button>
+            <ul class="transaction-list" id="allTransactionsList">
+                <li>No transactions added yet.</li>
+            </ul>
+        </div>
+
+        <div id="analyzeDataPage" class="page">
+            <h2>Analyze Data</h2>
+            <div class="date-range-selector">
+                <button data-range="thisMonth" class="active" onclick="displayAnalysisCharts('thisMonth')">This Month</button>
+                <button data-range="lastMonth" onclick="displayAnalysisCharts('lastMonth')">Last Month</button>
+                <button data-range="thisYear" onclick="displayAnalysisCharts('thisYear')">This Year</button>
+                <button data-range="allTime" onclick="displayAnalysisCharts('allTime')">All Time</button>
+            </div>
+            <div class="chart-container">
+                <h3>Income vs Expense Distribution</h3>
+                <canvas id="distributionChart" width="400" height="300"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Month-wise Income & Expense Comparison</h3>
+                <canvas id="comparisonChart" width="400" height="300"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Income & Expense Trend</h3>
+                <canvas id="trendChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <button class="fab" onclick="openAddTransactionPopup()">+</button>
+
+    <div id="transactionPopup" class="popup-overlay">
+        <div class="popup-content">
+            <h2 class="popup-header" id="transactionPopupTitle">Add Transaction</h2>
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label for="transactionType">Transaction Type</label>
+                    <div class="transaction-type-selector">
+                        <button type="button" class="transaction-type-button expense selected" data-type="expense" onclick="selectTransactionType('expense')">Expense</button>
+                        <button type="button" class="transaction-type-button income" data-type="income" onclick="selectTransactionType('income')">Income</button>
+                        <input type="radio" id="expenseType" name="transactionType" value="expense" checked>
+                        <input type="radio" id="incomeType" name="transactionType" value="income">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Amount</label>
+                    <input type="number" id="amount" name="amount" placeholder="Enter amount" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="date">
+                </div>
+                <div class="form-group">
+                    <label for="source">Source (Optional)</label>
+                    <input type="text" id="source" name="source" list="sourceSuggestions" placeholder="Enter source">
+                    <datalist id="sourceSuggestions">
+                        </datalist>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description (Optional)</label>
+                    <input type="text" id="description" name="description" placeholder="Enter description">
+                </div>
+
+                <div class="popup-actions">
+                    <button type="submit" id="addSaveButton">Save Transaction</button>
+                    <button type="button" class="cancel" onclick="closeTransactionPopup()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteConfirmationPopup" class="popup-overlay">
+        <div class="popup-content hint-popup-content">
+            <h2 class="popup-header">Confirm Delete</h2>
+            <p>Are you sure you want to delete this transaction?</p>
+            <div class="hint-popup-actions">
+                <button class="PopPreBTN1" onclick="confirmDeleteTransaction()">Delete</button>
+                <button class="cancel" onclick="closeDeleteConfirmationPopup()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="welcomeHintPopup" class="popup-overlay">
+        <div class="popup-content hint-popup-content">
+            <h2 class="popup-header">Welcome to OutLay!</h2>
+            <p>Click the plus (+) button to add your first transaction.</p>
+            <div class="hint-popup-actions">
+                <button class="cancel" onclick="closeWelcomeHint()">Okay</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="transactionPageHintPopup" class="popup-overlay">
+        <div class="popup-content hint-popup-content">
+            <h2 class="popup-header">Transactions Page</h2>
+            <p>Here you can see all your transactions. Use the + button to add new transactions or edit/delete existing ones.</p>
+            <div class="hint-popup-actions">
+                <button onclick="closeTransactionPageHint()">Okay</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="analyzeDataHintPopup" class="popup-overlay">
+        <div class="popup-content hint-popup-content">
+            <h2 class="popup-header">Analyze Data Page</h2>
+            <p>This page shows visual analysis of your income and expenses. Select a date range to filter data.</p>
+            <div class="hint-popup-actions">
+                <button onclick="closeAnalyzeDataHint()">Okay</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="backupPopup" class="popup-overlay">
+        <div class="popup-content">
+            <h2 class="popup-header">Backup Your Data</h2>
+            <div class="form-group">
+                <label for="backupText">Backup Text (Copy and Save this Text)</label>
+                <textarea id="backupText" readonly></textarea>
+            </div>
+            <div class="popup-actions">
+                <button type="button" onclick="copyBackupTextToClipboard()">Copy to Clipboard</button>
+                <button type="button" class="cancel" onclick="closeBackupPopup()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="restorePopup" class="popup-overlay">
+        <div class="popup-content">
+            <h2 class="popup-header">Restore Your Data</h2>
+            <form id="restoreForm">
+                <div class="form-group">
+                    <label for="restoreText">Paste Backup Text Here</label>
+                    <textarea id="restoreText" name="restoreText"></textarea>
+                </div>
+                <div class="popup-actions">
+                    <button type="submit">Restore Data</button>
+                    <button type="button" class="cancel" onclick="closeRestorePopup()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="messagePopup" class="popup-overlay">
+        <div class="popup-content hint-popup-content">
+            <h2 class="popup-header" id="messagePopupTitle">Message</h2>
+            <p id="messagePopupContent"></p>
+            <div class="hint-popup-actions">
+                <button class="cancel" onclick="closeMessagePopup()">Okay</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // JavaScript Functionality
+
+        let transactions = loadTransactions();
+        let editTransactionId = null; // To track transaction being edited
+        let deleteTransactionId = null; // To track transaction being deleted
+        let sourceSuggestions = loadSourceSuggestions();
+        let selectedTransactionType = 'expense'; // Default transaction type
+        let mobileMenuVisible = false; // Track mobile menu visibility
+
+        // --- Mobile Menu ---
+        function toggleMobileMenu() {
+            mobileMenuVisible = !mobileMenuVisible;
+            document.getElementById('mobileMenuDropdown').classList.toggle('show', mobileMenuVisible);
+        }
+
+        function closeMobileMenu() {
+            mobileMenuVisible = false;
+            document.getElementById('mobileMenuDropdown').classList.remove('show');
+        }
+
+        // Close mobile menu when clicking outside
+        window.addEventListener('click', function(event) {
+            if (!event.target.matches('.mobile-menu-button') && mobileMenuVisible) {
+                closeMobileMenu();
+            }
+        });
+
+        // --- Navigation for Mobile Menu ---
+        function navigateToPage(pageId) {
+            // Deactivate current active button and page in desktop nav (if visible)
+            if (document.querySelector('.nav-button.active')) {
+                document.querySelector('.nav-button.active').classList.remove('active');
+            }
+            document.querySelector('.page.active').classList.remove('active');
+
+            // Activate page
+            document.getElementById(pageId).classList.add('active');
+
+            if (pageId === 'transactionsPage') {
+                displayAllTransactions(); // Refresh transactions when navigating to page
+            } else if (pageId === 'analyzeDataPage') {
+                displayAnalysisCharts('thisMonth'); // Update charts when navigating to Analyze Data
+            }
+
+             // Update active state of nav button in desktop view (if visible)
+            const navButton = document.querySelector(`.nav-button[data-page="${pageId}"]`);
+            if (navButton) {
+                navButton.classList.add('active');
+            }
+        }
+
+
+        // --- Date and Summary Display ---
+        function updateDate() {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+            const year = now.getFullYear();
+            const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
+            document.getElementById('currentDate').textContent = `${day}-${month}-${year}, ${dayOfWeek}`;
+        }
+
+        function updateSummary() {
+            const todayTransactions = getTodayTransactions();
+            let totalIncome = 0;
+            let totalExpense = 0;
+            todayTransactions.forEach(transaction => {
+                if (transaction.type === 'income') {
+                    totalIncome += parseFloat(transaction.amount);
+                } else {
+                    totalExpense += parseFloat(transaction.amount);
+                }
+            });
+            document.getElementById('totalIncome').textContent = `₹${totalIncome.toFixed(2)}`;
+            document.getElementById('totalExpense').textContent = `₹${totalExpense.toFixed(2)}`;
+
+            const balance = totalIncome - totalExpense;
+            document.getElementById('balanceAmount').textContent = `₹${balance.toFixed(2)}`;
+            if (balance >= 0) {
+                document.querySelector('.summary-box.balance-box p').style.color = 'var(--success-color)'; // Green for positive or zero balance
+            } else {
+                document.querySelector('.summary-box.balance-box p').style.color = 'var(--accent-color)'; // Revert to accent color (or choose another for negative balance if desired)
+            }
+        }
+
+        function getTodayTransactions() {
+            const today = new Date().toISOString().slice(0, 10); //YYYY-MM-DD format
+            return transactions.filter(transaction => transaction.date === today);
+        }
+
+        // --- Transaction Management ---
+        function loadTransactions() {
+            const storedTransactions = localStorage.getItem('transactions');
+            return storedTransactions ? JSON.parse(storedTransactions) : [];
+        }
+
+        function saveTransactions() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            updateSummary();
+            displayRecentTransactions();
+            displayAllTransactions();
+            displayAnalysisCharts('thisMonth'); // Update charts on save
+            updateIncomeExpenseChartForHomepage(); // Update homepage chart
+        }
+
+        function addTransaction(transactionData) {
+            transactions.push(transactionData);
+            saveTransactions();
+            updateSourceSuggestions(transactionData.source);
+        }
+
+        function editTransaction(transactionId, updatedData) {
+            const index = transactions.findIndex(transaction => transaction.id === transactionId);
+            if (index !== -1) {
+                transactions[index] = {...transactions[index], ...updatedData}; // Merge updated data
+                saveTransactions();
+            }
+        }
+
+        function deleteTransaction(transactionId) {
+            transactions = transactions.filter(transaction => transaction.id !== transactionId);
+            saveTransactions();
+        }
+
+        function generateTransactionId() {
+            return Date.now().toString(); // Simple unique ID
+        }
+
+        // --- Display Transactions ---
+        function displayRecentTransactions() {
+            const recentList = document.getElementById('recentTransactionsList');
+            recentList.innerHTML = ''; // Clear existing list
+            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date desc
+            const recent = sortedTransactions.slice(0, 5); // Get top 5 recent
+            if (recent.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = 'No recent transactions.';
+                recentList.appendChild(li);
+            } else {
+                recent.forEach(transaction => {
+                    const li = createTransactionListItem(transaction);
+                    recentList.appendChild(li);
+                });
+            }
+        }
+
+        function displayAllTransactions() {
+            const allList = document.getElementById('allTransactionsList');
+            allList.innerHTML = ''; // Clear existing list
+            if (transactions.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = 'No transactions added yet.';
+                allList.appendChild(li);
+            } else {
+                transactions.forEach(transaction => {
+                    const li = createTransactionListItem(transaction);
+                    allList.appendChild(li);
+                });
+            }
+        }
+
+        function createTransactionListItem(transaction) {
+            const li = document.createElement('li');
+            li.classList.add('transaction-item');
+
+            const detailsDiv = document.createElement('div');
+            detailsDiv.classList.add('transaction-details');
+            detailsDiv.innerHTML = `
+                <div class="transaction-date">${formatDate(transaction.date)}</div>
+                ${transaction.source ? `<div class="transaction-source">Source: ${transaction.source}</div>` : ''}
+                ${transaction.description ? `<div class="transaction-description">${transaction.description}</div>` : ''}
+                <div class="transaction-amount ${transaction.type}">${transaction.type === 'income' ? '₹' + parseFloat(transaction.amount).toFixed(2) : '-₹' + parseFloat(transaction.amount).toFixed(2)}</div>
+            `;
+            li.appendChild(detailsDiv);
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.classList.add('transaction-actions');
+            actionsDiv.innerHTML = `
+                <button onclick="openEditTransactionPopup('${transaction.id}')">Edit</button>
+                <button onclick="openDeleteConfirmation('${transaction.id}')">Delete</button>
+            `;
+            li.appendChild(actionsDiv);
+            return li;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        // --- Source Suggestions ---
+        function loadSourceSuggestions() {
+            const storedSuggestions = localStorage.getItem('sourceSuggestions');
+            return storedSuggestions ? JSON.parse(storedSuggestions) : [];
+        }
+
+        function saveSourceSuggestions() {
+            localStorage.setItem('sourceSuggestions', JSON.stringify(sourceSuggestions));
+        }
+
+        function updateSourceSuggestions(newSource) {
+            if (newSource && !sourceSuggestions.includes(newSource)) {
+                sourceSuggestions.push(newSource);
+                saveSourceSuggestions();
+                populateSourceSuggestionsDatalist();
+            }
+        }
+
+        function populateSourceSuggestionsDatalist() {
+            const datalist = document.getElementById('sourceSuggestions');
+            datalist.innerHTML = ''; // Clear existing suggestions
+            sourceSuggestions.forEach(source => {
+                const option = document.createElement('option');
+                option.value = source;
+                datalist.appendChild(option);
+            });
+        }
+
+
+        // --- Popup Functions ---
+        function openAddTransactionPopup() {
+            editTransactionId = null; // Reset edit ID
+            document.getElementById('transactionPopupTitle').textContent = 'Add Transaction';
+            document.getElementById('addSaveButton').textContent = 'Save Transaction';
+            document.getElementById('transactionForm').reset(); // Reset form fields
+            document.getElementById('date').valueAsDate = new Date(); // Set default date to current date
+            selectTransactionType('expense'); // Default to Expense type and visually select it
+            document.getElementById('amount').focus(); // Focus on amount input for user convenience
+            document.getElementById('transactionPopup').style.display = 'flex';
+        }
+
+        function openEditTransactionPopup(transactionId) {
+            editTransactionId = transactionId;
+            document.getElementById('transactionPopupTitle').textContent = 'Edit Transaction';
+            document.getElementById('addSaveButton').textContent = 'Save Changes';
+            const transaction = transactions.find(trans => trans.id === transactionId);
+            if (transaction) {
+                selectTransactionType(transaction.type); // Select and visually update transaction type
+                document.getElementById('source').value = transaction.source || '';
+                document.getElementById('date').value = transaction.date;
+                document.getElementById('description').value = transaction.description || '';
+                document.getElementById('amount').value = transaction.amount;
+                document.getElementById('transactionPopup').style.display = 'flex';
+            }
+        }
+
+        function closeTransactionPopup() {
+            document.getElementById('transactionPopup').style.display = 'none';
+        }
+
+        function openDeleteConfirmation(transactionId) {
+            deleteTransactionId = transactionId;
+            document.getElementById('deleteConfirmationPopup').style.display = 'flex';
+        }
+
+        function closeDeleteConfirmationPopup() {
+            document.getElementById('deleteConfirmationPopup').style.display = 'none';
+            deleteTransactionId = null; // Reset delete ID
+        }
+
+        function confirmDeleteTransaction() {
+            if (deleteTransactionId) {
+                deleteTransaction(deleteTransactionId);
+                displayAllTransactions(); // Refresh transaction list
+                closeDeleteConfirmationPopup();
+            }
+        }
+
+        function selectTransactionType(type) {
+            selectedTransactionType = type;
+            document.getElementById('incomeType').checked = type === 'income';
+            document.getElementById('expenseType').checked = type === 'expense';
+
+            // Visual selection update
+            document.querySelectorAll('.transaction-type-button').forEach(button => {
+                button.classList.remove('selected');
+            });
+            document.querySelector(`.transaction-type-button.${type}`).classList.add('selected');
+        }
+
+
+        // --- Form Submission ---
+        document.getElementById('transactionForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const transactionType = selectedTransactionType; // Use selectedTransactionType
+            const source = document.getElementById('source').value.trim();
+            const date = document.getElementById('date').value;
+            const description = document.getElementById('description').value.trim();
+            const amount = document.getElementById('amount').value;
+
+            if (!date  || !amount) { // Description is now optional, removed from validation
+                alert('Please fill in all required fields.'); // Basic validation
+                return;
+            }
+
+            const transactionData = {
+                type: transactionType,
+                source: source,
+                date: date,
+                description: description,
+                amount: amount,
+                id: editTransactionId || generateTransactionId() // Use edit ID if editing, else generate new ID
+            };
+
+            if (editTransactionId) {
+                editTransaction(editTransactionId, transactionData);
+            } else {
+                addTransaction(transactionData);
+            }
+
+            closeTransactionPopup();
+            displayRecentTransactions();
+            displayAllTransactions();
+            updateSummary();
+            displayAnalysisCharts('thisMonth'); // Update charts after transaction
+            updateIncomeExpenseChartForHomepage(); // Update homepage chart
+        });
+
+        // --- Navigation ---
+        document.querySelectorAll('.nav-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const pageId = this.getAttribute('data-page');
+                // Deactivate current active button and page
+                document.querySelector('.nav-button.active').classList.remove('active');
+                document.querySelector('.page.active').classList.remove('active');
+                // Activate clicked button and page
+                this.classList.add('active');
+                document.getElementById(pageId).classList.add('active');
+
+                if (pageId === 'transactionsPage') {
+                    displayAllTransactions(); // Refresh transactions when navigating to page
+                } else if (pageId === 'analyzeDataPage') {
+                    displayAnalysisCharts('thisMonth'); // Update charts when navigating to Analyze Data
+                }
+            });
+        });
+
+        // --- Hint Popups ---
+        function checkAndShowHint(hintId, localStorageKey) {
+            if (!localStorage.getItem(localStorageKey)) {
+                document.getElementById(hintId).style.display = 'flex';
+            }
+        }
+
+        function closeHintPopup(hintId, localStorageKey) {
+            document.getElementById(hintId).style.display = 'none';
+            localStorage.setItem(localStorageKey, 'true');
+        }
+
+        function closeWelcomeHint() {
+            closeHintPopup('welcomeHintPopup', 'welcomeHintShown');
+        }
+
+        function closeTransactionPageHint() {
+            closeHintPopup('transactionPageHintPopup', 'transactionPageHintShown');
+        }
+
+        function closeAnalyzeDataHint() {
+            closeHintPopup('analyzeDataHintPopup', 'analyzeDataHintShown');
+        }
+
+        // --- Data Backup and Restore ---
+        function openBackupPopup() {
+            const backupData = backupDataToText();
+            document.getElementById('backupText').value = backupData;
+            document.getElementById('backupPopup').style.display = 'flex';
+            closeMobileMenu();
+        }
+
+        function closeBackupPopup() {
+            document.getElementById('backupPopup').style.display = 'none';
+        }
+
+        function openRestorePopup() {
+            document.getElementById('restorePopup').style.display = 'flex';
+            closeMobileMenu();
+        }
+
+        function closeRestorePopup() {
+            document.getElementById('restorePopup').style.display = 'none';
+        }
+
+        function backupDataToText() {
+            const data = {
+                transactions: transactions,
+                sourceSuggestions: sourceSuggestions
+            };
+            return JSON.stringify(data);
+        }
+
+        function copyBackupTextToClipboard() {
+            const backupTextElement = document.getElementById('backupText');
+            backupTextElement.select();
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges(); // Deselect the text
+            openMessagePopup('Backup text copied to clipboard! Please save it in a text file.'); // Use web app popup
+        }
+
+        // --- Message Popup ---
+        function openMessagePopup(message) {
+            document.getElementById('messagePopupContent').textContent = message;
+            document.getElementById('messagePopup').style.display = 'flex';
+        }
+
+        function closeMessagePopup() {
+            document.getElementById('messagePopup').style.display = 'none';
+        }
+
+
+        document.getElementById('restoreForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const restoreText = document.getElementById('restoreText').value;
+            restoreDataFromText(restoreText);
+            closeRestorePopup();
+            openMessagePopup('Data restored successfully!'); // Use web app popup
+             // Refresh UI after restore
+            updateSummary();
+            displayRecentTransactions();
+            displayAllTransactions();
+            displayAnalysisCharts('thisMonth');
+            updateIncomeExpenseChartForHomepage();
+        });
+
+
+        function restoreDataFromText(backupText) {
+            try {
+                const data = JSON.parse(backupText);
+                if (data && Array.isArray(data.transactions) && Array.isArray(data.sourceSuggestions)) {
+                    transactions = data.transactions;
+                    sourceSuggestions = data.sourceSuggestions;
+                    saveTransactions();
+                    saveSourceSuggestions();
+                    populateSourceSuggestionsDatalist();
+                } else {
+                    openMessagePopup('Invalid backup data format.'); // Use web app popup
+                }
+            } catch (e) {
+                openMessagePopup('Error restoring data. Invalid backup text.'); // Use web app popup
+                console.error('Restore error:', e);
+            }
+        }
+
+
+        // --- Data Analysis and Charts ---
+        function displayAnalysisCharts(dateRange) {
+            const analysisData = getAnalysisData(dateRange);
+
+            // Update Chart.js charts
+            updateDistributionChart(analysisData);
+            updateComparisonChart(analysisData, dateRange);
+            updateTrendChart(analysisData, dateRange);
+
+
+            // Update active state of date range buttons
+            document.querySelectorAll('.date-range-selector button').forEach(button => {
+                button.classList.remove('active');
+                if (button.getAttribute('data-range') === dateRange) {
+                    button.classList.add('active');
+                }
+            });
+        }
+
+        function getAnalysisData(dateRange) {
+            let filteredTransactions = transactions;
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+
+            switch (dateRange) {
+                case 'thisMonth':
+                    filteredTransactions = transactions.filter(transaction => {
+                        const transDate = new Date(transaction.date);
+                        return transDate.getFullYear() === currentYear && transDate.getMonth() === currentMonth;
+                    });
+                    break;
+                case 'lastMonth':
+                    const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
+                    const lastMonthYear = lastMonthDate.getFullYear();
+                    const lastMonth = lastMonthDate.getMonth();
+                    filteredTransactions = transactions.filter(transaction => {
+                        const transDate = new Date(transaction.date);
+                        return transDate.getFullYear() === lastMonthYear && transDate.getMonth() === lastMonth;
+                    });
+                    break;
+                case 'thisYear':
+                    filteredTransactions = transactions.filter(transaction => {
+                        const transDate = new Date(transaction.date);
+                        return transDate.getFullYear() === currentYear;
+                    });
+                    break;
+                case 'allTime':
+                    filteredTransactions = transactions; // No date filtering for all time
+                    break;
+                default:
+                    break;
+            }
+
+            let totalIncome = 0;
+            let totalExpense = 0;
+            filteredTransactions.forEach(transaction => {
+                if (transaction.type === 'income') {
+                    totalIncome += parseFloat(transaction.amount);
+                } else {
+                    totalExpense += parseFloat(transaction.amount);
+                }
+            });
+
+            return {
+                totalIncome: totalIncome,
+                totalExpense: totalExpense,
+                transactions: filteredTransactions
+            };
+        }
+
+        // --- Chart Creation with Chart.js ---
+        let distributionChartInstance, comparisonChartInstance, trendChartInstance, incomeExpenseChartInstance;
+
+        function updateDistributionChart(analysisData) {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            if (distributionChartInstance) {
+                distributionChartInstance.destroy(); // Destroy existing chart
+            }
+            distributionChartInstance = new Chart(ctx, {
+                type: 'bar', // Changed to bar chart
+                data: {
+                    labels: ['Income', 'Expense'],
+                    datasets: [{
+                        label: 'Amounts',
+                        data: [analysisData.totalIncome, analysisData.totalExpense],
+                        backgroundColor: [
+                            'rgba(76, 175, 80, 0.7)', // Success color
+                            'rgba(244, 67, 54, 0.7)'  // Error color
+                        ],
+                        borderColor: [
+                            'rgba(76, 175, 80, 1)',
+                            'rgba(244, 67, 54, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                     plugins: {
+                        title: {
+                            display: true,
+                            text: 'Income vs Expense Distribution' // Chart title
+                        }
+                    }
+                }
+            });
+        }
+
+
+        function updateComparisonChart(analysisData, dateRange) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            if (comparisonChartInstance) {
+                comparisonChartInstance.destroy();
+            }
+
+            const monthlyData = {};
+            analysisData.transactions.forEach(transaction => {
+                const monthYear = new Date(transaction.date).toLocaleString('default', { month: 'short', year: 'numeric' });
+                if (!monthlyData[monthYear]) {
+                    monthlyData[monthYear] = { income: 0, expense: 0 };
+                }
+                if (transaction.type === 'income') {
+                    monthlyData[monthYear].income += parseFloat(transaction.amount);
+                } else {
+                    monthlyData[monthYear].expense += parseFloat(transaction.amount);
+                }
+            });
+
+            const labels = Object.keys(monthlyData).sort((a, b) => new Date(`01-${a}`) - new Date(`01-${b}`)); // Sort months chronologically
+            const incomeData = labels.map(month => monthlyData[month].income);
+            const expenseData = labels.map(month => monthlyData[month].expense);
+
+
+            comparisonChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Income',
+                        data: incomeData,
+                        backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Expense',
+                        data: expenseData,
+                        backgroundColor: 'rgba(244, 67, 54, 0.7)',
+                        borderColor: 'rgba(244, 67, 54, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                     plugins: {
+                        title: {
+                            display: true,
+                            text: 'Month-wise Income & Expense Comparison' // Chart title
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTrendChart(analysisData, dateRange) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (trendChartInstance) {
+                trendChartInstance.destroy();
+            }
+
+            const dailyData = {};
+            analysisData.transactions.forEach(transaction => {
+                if (!dailyData[transaction.date]) {
+                    dailyData[transaction.date] = { income: 0, expense: 0 };
+                }
+                if (transaction.type === 'income') {
+                    dailyData[transaction.date].income += parseFloat(transaction.amount);
+                } else {
+                    dailyData[transaction.date].expense += parseFloat(transaction.amount);
+                }
+            });
+
+            const sortedDates = Object.keys(dailyData).sort((a, b) => new Date(a) - new Date(b));
+            const incomeTrendData = sortedDates.map(date => dailyData[date].income);
+            const expenseTrendData = sortedDates.map(date => dailyData[date].expense);
+
+
+            trendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: 'Income Trend',
+                        data: incomeTrendData,
+                        borderColor: 'rgba(76, 175, 80, 1)',
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Expense Trend',
+                        data: expenseTrendData,
+                        borderColor: 'rgba(244, 67, 54, 1)',
+                        backgroundColor: 'rgba(244, 67, 54, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                     plugins: {
+                        title: {
+                            display: true,
+                            text: 'Income & Expense Trend' // Chart title
+                        }
+                    }
+                }
+            });
+        }
+
+         function updateIncomeExpenseChartForHomepage() {
+            const analysisData = getAnalysisData('thisMonth'); // Or use 'today' if you want today's data
+            const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
+            if (incomeExpenseChartInstance) {
+                incomeExpenseChartInstance.destroy();
+            }
+
+            incomeExpenseChartInstance = new Chart(ctx, {
+                type: 'bar', // Use bar chart for Income vs Expense on homepage
+                data: {
+                    labels: ['Income', 'Expenses'],
+                    datasets: [{
+                        label: 'Total Amount',
+                        data: [analysisData.totalIncome, analysisData.totalExpense],
+                        backgroundColor: [
+                            'rgba(76, 175, 80, 0.7)', // Green for Income
+                            'rgba(244, 67, 54, 0.7)'  // Red for Expenses
+                        ],
+                        borderColor: [
+                            'rgba(76, 175, 80, 1)',
+                            'rgba(244, 67, 54, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                     plugins: {
+                        title: {
+                            display: true,
+                            text: 'Income vs Expenses This Month' // Chart title - adjust as needed
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // --- Initialize App ---
+        updateDate();
+        updateSummary();
+        displayRecentTransactions();
+        populateSourceSuggestionsDatalist();
+        displayAnalysisCharts('thisMonth'); // Initialize charts for 'This Month'
+        updateIncomeExpenseChartForHomepage(); // Initialize homepage chart
+
+
+        // Show welcome hint on first load (if not shown before)
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAndShowHint('welcomeHintPopup', 'welcomeHintShown');
+            // Hints for other pages can be shown when navigating to those pages
+        });
+
+        document.querySelector('.nav-button[data-page="transactionsPage"]').addEventListener('click', function() {
+            checkAndShowHint('transactionPageHintPopup', 'transactionPageHintShown');
+        });
+
+        document.querySelector('.nav-button[data-page="analyzeDataPage"]').addEventListener('click', function() {
+            checkAndShowHint('analyzeDataHintPopup', 'analyzeDataHintShown');
+        });
+
+
+    </script>
+
+</body>
+</html>
