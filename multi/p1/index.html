@@ -1,0 +1,1280 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preference List Manager</title>
+    <style>
+        /* Basic body styling */
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            line-height: 1.4; /* Slightly tighter line height for smaller screens */
+        }
+
+        /* Main container styling */
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        /* Heading */
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2em; /* Default large font for desktop */
+        }
+
+        /* Common input/textarea styles */
+        textarea,
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box; /* Ensures padding/border are included in width */
+        }
+
+        /* Button styles */
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background 0.3s ease;
+            font-size: 1rem; /* Default button font size */
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Specific button styling for delete items mode */
+        #multi-delete-controls button {
+            margin-right: 10px;
+            /* Space between buttons */
+        }
+
+        #multi-delete-controls button:last-child {
+            margin-right: 0;
+            /* No margin on the last button */
+        }
+
+        /* List styling */
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        li {
+            padding: 12px;
+            margin: 8px 0;
+            background: #e9ecef;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        li .item-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+            cursor: pointer;
+            /* Ensure text inside content can wrap */
+            word-break: break-word; /* Prevents text overflow for very long words */
+        }
+
+        li .item-content span {
+            font-size: 1rem; /* Default item text font size */
+        }
+
+        /* Style for checkboxes in delete mode */
+        li .item-checkbox {
+            display: none;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0; /* Prevent checkbox from shrinking */
+        }
+
+        /* Show checkboxes when delete mode is active */
+        body.delete-mode .item-checkbox {
+            display: block;
+        }
+
+        /* Style when dragging an item */
+        li.dragging {
+            opacity: 0.7;
+            transform: scale(1.03);
+            z-index: 1000;
+            background-color: #d1ecf1;
+            border: 2px dashed #007bff;
+        }
+
+        /* Container for edit/delete buttons */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0; /* Prevent buttons from shrinking */
+        }
+
+        /* Edit and delete button styling */
+        .delete-btn,
+        .edit-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px; /* Add some padding to clickable icon buttons */
+            border-radius: 4px; /* Maintain hover effect */
+        }
+
+        .delete-btn {
+            color: #dc3545;
+            font-size: 23px;
+        }
+
+        .delete-btn:hover {
+            background-color: #dc3545;
+            color: #ffffff;
+        }
+
+        .edit-btn {
+            color: #28a745;
+        }
+
+        .edit-btn:hover {
+            background-color: #28a745;
+            border-radius: 4px;
+            color: #ffffff;
+        }
+
+        /* Hide edit/delete buttons in multi-delete mode */
+        body.delete-mode .btn-group {
+            display: none;
+        }
+
+        /* Search bar layout */
+        .search {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Popup message box styling */
+        #popup {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 9999;
+            pointer-events: none;
+            font-size: 0.9em;
+        }
+
+        /* Visible state for popup */
+        #popup.show {
+            opacity: 1;
+        }
+
+        /* Modal overlay (edit box background) */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+
+        /* Show modal when needed */
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        /* Modal content box */
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            text-align: center;
+            font-size: 1.2em; /* Adjusted modal heading font size */
+        }
+
+        .modal-content input {
+            margin-bottom: 0;
+            font-size: 15px; /* Slightly smaller input font */
+        }
+
+        /* Button group within modal */
+        .modal-content .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .modal-content .modal-buttons button {
+            flex: 1;
+            margin-right: 0;
+            font-size: 0.95rem; /* Adjusted modal button font size */
+        }
+
+        /* Confirmation Modal Styling */
+        #confirmationModal .modal-content {
+            padding: 25px;
+            text-align: center;
+        }
+
+        #confirmationModal .modal-content .modal-buttons {
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        /* --- Drag Handle Styling --- */
+        .drag-handle {
+            width: 50px;
+            min-width: 50px;
+            background-color: #E6E6FA;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            margin-right: 10px;
+            border-right: 1px dotted #8A2BE2;
+            border-radius: 4px;
+            opacity: 0.9;
+            transition: opacity 0.2s ease;
+        }
+
+        .drag-handle:hover {
+            opacity: 1;
+        }
+
+        .drag-handle .lines-icon {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 20px;
+        }
+
+        .drag-handle .line {
+            height: 2px;
+            background-color: #8A2BE2;
+            width: 100%;
+            border-radius: 1px;
+        }
+
+        /* Hide drag handle by default */
+        .drag-handle {
+            display: none;
+        }
+
+        /* Full Text Popup Styling */
+        #fullTextModal .modal-content {
+            text-align: left;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 80vh;
+            overflow-y: auto;
+            font-size: 1rem; /* Full text modal content font size */
+        }
+        #fullTextModal .modal-content p {
+            margin-bottom: 0;
+        }
+
+        /* --- Tour Guide Styles --- */
+        #tourGuideOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000; /* Higher than other modals */
+        }
+
+        #tourGuideOverlay.show {
+            display: flex;
+        }
+
+        #tourGuideModal {
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            margin: 20px;
+        }
+
+        #tourGuideModal h3 {
+            margin-top: 0;
+            color: #007bff;
+            font-size: 1.5em;
+        }
+
+        #tourGuideModal p {
+            font-size: 1.1em;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        #tourGuideModal .tour-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        #tourGuideModal .tour-buttons button {
+            background-color: #28a745;
+            margin: 0 5px;
+        }
+
+        #tourGuideModal .tour-buttons button:hover {
+            background-color: #218838;
+        }
+
+        #tourGuideModal .tour-buttons button#tourSkipBtn {
+            background-color: #6c757d;
+        }
+        #tourGuideModal .tour-buttons button#tourSkipBtn:hover {
+            background-color: #5a6268;
+        }
+
+        #tourGuideModal .tour-buttons button#tourPrevBtn {
+            background-color: #ffc107;
+            color: #333;
+        }
+        #tourGuideModal .tour-buttons button#tourPrevBtn:hover {
+            background-color: #e0a800;
+        }
+
+        .highlight-tour {
+            border: 3px solid #007bff !important;
+            box-shadow: 0 0 15px rgba(0, 123, 255, 0.5) !important;
+            z-index: 1000; /* Ensure highlighted element is above normal elements but below tour guide */
+            position: relative; /* Needed for z-index to work */
+        }
+
+
+        /* ============================================== */
+        /* --- Mobile Specific Styles (Max-width 600px) --- */
+        /* ============================================== */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px; /* Reduced body padding */
+                font-size: 0.95rem; /* Base font size slightly smaller */
+            }
+
+            .container {
+                padding: 15px; /* Reduced container padding */
+                margin: 0; /* Remove horizontal margin, let padding handle space */
+                border-radius: 0; /* Optional: sharper corners for full width */
+                box-shadow: none; /* Optional: lighter shadow on mobile */
+            }
+
+            h2 {
+                font-size: 1.5em; /* Smaller heading */
+                margin-bottom: 15px;
+            }
+
+            textarea,
+            input {
+                padding: 10px; /* Reduced input padding */
+                font-size: 14px; /* Smaller input font */
+            }
+
+            button {
+                padding: 8px 15px; /* Reduced button padding */
+                font-size: 0.9rem; /* Smaller button font */
+                margin-right: 5px; /* Less margin between buttons */
+            }
+
+            .action-buttons {
+                flex-direction: column; /* Stack buttons vertically */
+                gap: 8px; /* Reduced gap */
+                margin-top: 10px; /* Reduced top margin */
+            }
+            .action-buttons button {
+                width: 100%; /* Full width buttons */
+                margin-right: 0;
+            }
+
+            #multi-delete-controls {
+                margin-top: 10px; /* Reduced margin */
+            }
+            #multi-delete-controls button {
+                width: calc(50% - 5px); /* Two buttons per row, with a small gap */
+                margin-right: 0;
+            }
+            #multi-delete-controls button:first-child {
+                margin-right: 10px; /* Add margin between the two buttons */
+            }
+
+            .search {
+                flex-direction: column;
+                gap: 8px;
+                margin-top: 15px;
+            }
+            .search button {
+                width: 100%;
+            }
+
+            ul {
+                margin-top: 15px; /* Reduced list top margin */
+            }
+
+            li {
+                padding: 8px; /* Reduced list item padding */
+                margin: 6px 0; /* Reduced list item margin */
+                align-items: stretch; /* Stretch items to ensure full height for drag handle */
+            }
+
+            li .item-content {
+                gap: 8px; /* Reduced gap */
+                font-size: 0.9rem; /* Smaller item text font size */
+                /* Align items in a flex container for better vertical alignment */
+                display: flex;
+                flex-direction: row;
+                align-items: center; /* Vertically align items */
+            }
+
+            li .item-content span {
+                font-size: 0.9rem; /* Smaller item text font size */
+                line-height: 1.2; /* Tighter line height for list items */
+                flex-grow: 1; /* Allow text to take remaining space */
+                min-width: 0; /* Allow text to shrink and wrap */
+            }
+
+            li .item-checkbox {
+                width: 18px; /* Slightly smaller checkbox */
+                height: 18px;
+            }
+
+            .drag-handle {
+                width: 40px; /* Slightly reduced handle width for more content space */
+                min-width: 40px;
+                margin-right: 8px; /* Reduced margin */
+                height: auto; /* Allow height to adjust */
+                align-self: stretch; /* Make handle stretch to full height of li */
+                border-radius: 4px 0 0 4px; /* Round only left corners */
+            }
+            .drag-handle .lines-icon {
+                gap: 3px; /* Slightly smaller gap between lines */
+                width: 18px; /* Slightly smaller line width */
+            }
+            .drag-handle .line {
+                height: 1.8px; /* Slightly thinner lines */
+            }
+
+            /* Show drag handle on mobile by default */
+            li .drag-handle {
+                display: flex; /* Show the handle */
+            }
+
+            /* Hide drag handle when in delete-mode on mobile */
+            body.delete-mode li .drag-handle {
+                display: none;
+            }
+
+            /* On mobile, make the list item itself not draggable by default */
+            li {
+                cursor: default; /* Change cursor for list item */
+                padding-left: 0; /* Ensure no extra padding pushes handle */
+            }
+
+            .btn-group {
+                gap: 5px; /* Smaller gap between edit/delete buttons */
+                flex-shrink: 0; /* Prevent buttons from shrinking further */
+            }
+
+            .delete-btn,
+            .edit-btn {
+                font-size: 1.1rem; /* Slightly smaller icon size */
+                padding: 4px; /* Reduced padding */
+            }
+
+            /* Modals for mobile */
+            .modal-content {
+                width: 95%; /* Make modals slightly wider */
+                padding: 15px; /* Reduced modal padding */
+                gap: 10px; /* Reduced gap in modal content */
+            }
+            .modal-content h3 {
+                font-size: 1.1em; /* Smaller modal heading */
+            }
+            .modal-content input {
+                font-size: 14px; /* Smaller modal input font */
+            }
+            .modal-content .modal-buttons {
+                gap: 8px; /* Reduced button gap in modals */
+            }
+            .modal-content .modal-buttons button {
+                font-size: 0.85rem; /* Smaller modal button font */
+                padding: 8px 12px;
+            }
+            #fullTextModal .modal-content {
+                font-size: 0.95rem; /* Smaller font for full text modal */
+            }
+
+            /* Tour guide on mobile */
+            #tourGuideModal {
+                padding: 15px;
+            }
+            #tourGuideModal h3 {
+                font-size: 1.3em;
+            }
+            #tourGuideModal p {
+                font-size: 1em;
+            }
+            #tourGuideModal .tour-buttons button {
+                font-size: 0.8rem;
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Preference List Manager</h2>
+
+        <textarea id="item-input" placeholder="Enter multiple item names, one per line" rows="4"></textarea>
+
+        <div class="action-buttons" style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+            <button id="addItemsBtn" onclick="addItems()">Add Items</button>
+            <button id="downloadCSVBtn" onclick="downloadCSV()">Download CSV</button>
+            <button id="multi-delete-toggle-btn" onclick="toggleMultiDeleteMode()">Delete Items</button>
+        </div>
+
+        <div id="multi-delete-controls" style="display: none; margin-top: 15px; border-top: 4px dotted blue; flex-wrap: wrap; justify-content: flex-start; gap: 10px;">
+            <p style="width: 100%; margin-bottom: 5px;">Select the items for deletion</p>
+            <button style="background-color: #ef3232;" onclick="confirmMultiDelete()">Delete Now</button>
+            <button onclick="cancelMultiDeleteMode()">Cancel</button>
+        </div>
+
+        <div class="search">
+            <input id="search-input" type="text" placeholder="Search item name" autocomplete="off" onkeydown="if(event.key === 'Enter') searchItem()" />
+            <button id="searchBtn" onclick="searchItem()">Search</button>
+        </div>
+
+        <ul id="item-list"></ul>
+    </div>
+
+    <div id="popup"></div>
+
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Edit Item</h3>
+            <input type="text" id="editInput" onkeydown="if(event.key === 'Enter') confirmEdit()" />
+            <div class="modal-buttons">
+                <button onclick="confirmEdit()">Update</button>
+                <button onclick="closeEditModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmationModal" class="modal-overlay">
+        <div class="modal-content">
+            <p id="confirmationMessage"></p>
+            <div class="modal-buttons">
+                <button id="confirmYesBtn">Yes</button>
+                <button id="confirmNoBtn">No</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="fullTextModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Full Item Text</h3>
+            <p id="fullTextContent"></p>
+            <div class="modal-buttons">
+                <button onclick="closeFullTextModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tourGuideOverlay">
+        <div id="tourGuideModal">
+            <h3 id="tourGuideTitle"></h3>
+            <p id="tourGuideDescription"></p>
+            <div class="tour-navigation">
+                <button id="tourPrevBtn">Previous</button>
+                <span id="tourStepIndicator"></span>
+                <div class="tour-buttons">
+                    <button id="tourSkipBtn">Skip Tour</button>
+                    <button id="tourNextBtn">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get references to DOM elements
+        const itemInput = document.getElementById('item-input');
+        const itemList = document.getElementById('item-list');
+        const searchInput = document.getElementById('search-input');
+        const popup = document.getElementById('popup');
+        const editModal = document.getElementById('editModal');
+        const editInput = document.getElementById('editInput');
+
+        const multiDeleteToggleBtn = document.getElementById('multi-delete-toggle-btn');
+        const multiDeleteControls = document.getElementById('multi-delete-controls');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const confirmYesBtn = document.getElementById('confirmYesBtn');
+        const confirmNoBtn = document.getElementById('confirmNoBtn');
+
+        // New Full Text Modal elements
+        const fullTextModal = document.getElementById('fullTextModal');
+        const fullTextContent = document.getElementById('fullTextContent');
+
+        // Tour Guide elements
+        const tourGuideOverlay = document.getElementById('tourGuideOverlay');
+        const tourGuideTitle = document.getElementById('tourGuideTitle');
+        const tourGuideDescription = document.getElementById('tourGuideDescription');
+        const tourPrevBtn = document.getElementById('tourPrevBtn');
+        const tourNextBtn = document.getElementById('tourNextBtn');
+        const tourSkipBtn = document.getElementById('tourSkipBtn');
+        const tourStepIndicator = document.getElementById('tourStepIndicator');
+
+        // Initialize state variables
+        let items = JSON.parse(localStorage.getItem('items')) || [];
+        let currentEditIndex = null;
+        let draggedEl = null;
+        let scrollInterval = null;
+        let isTouchDragging = false;
+        let isMouseDragging = false;
+        let isInMultiDeleteMode = false; // New state for multi-delete mode
+        let resolveConfirmation; // To handle promise resolution for confirmation
+
+        // Tour Guide state
+        let tourSteps = [];
+        let currentTourStep = 0;
+        const hasSeenTour = localStorage.getItem('hasSeenTour');
+
+        // Helper function to detect if it's a mobile view
+        function isMobileView() {
+            return window.matchMedia("(max-width: 600px)").matches;
+        }
+
+        // Show a temporary popup message
+        function showPopup(message) {
+            popup.textContent = message;
+            popup.classList.add('show');
+            setTimeout(() => popup.classList.remove('show'), 2000);
+        }
+
+        // --- Confirmation Modal Logic ---
+        function showConfirmation(message) {
+            confirmationMessage.textContent = message;
+            confirmationModal.classList.add('show');
+            return new Promise((resolve) => {
+                resolveConfirmation = resolve;
+            });
+        }
+
+        confirmYesBtn.onclick = () => {
+            confirmationModal.classList.remove('show');
+            resolveConfirmation(true);
+        };
+
+        confirmNoBtn.onclick = () => {
+            confirmationModal.classList.remove('show');
+            resolveConfirmation(false);
+        };
+        // --- End Confirmation Modal Logic ---
+
+        // Open the edit modal
+        function openEditModal(index, text) {
+            currentEditIndex = index;
+            editInput.value = text;
+            editModal.classList.add('show');
+            editInput.focus();
+        }
+
+        // Close the edit modal
+        function closeEditModal() {
+            currentEditIndex = null;
+            editModal.classList.remove('show');
+        }
+
+        // Open the full text modal
+        function openFullTextModal(text) {
+            fullTextContent.textContent = text;
+            fullTextModal.classList.add('show');
+        }
+
+        // Close the full text modal
+        function closeFullTextModal() {
+            fullTextModal.classList.remove('show');
+        }
+
+
+        // Confirm edit and save updated item
+        function confirmEdit() {
+            // When editing, allow the user to control the capitalization.
+            // We just trim leading/trailing whitespace.
+            const newText = editInput.value.trim();
+
+            if (newText) {
+                items[currentEditIndex] = newText;
+                saveAndRender("Item updated.");
+                closeEditModal();
+            } else {
+                showPopup("Input cannot be empty.");
+            }
+        }
+
+        // Add multiple items from textarea input
+        function addItems() {
+            const value = itemInput.value.trim();
+            if (value) {
+                const newItems = value.split('\n').map(i => {
+                    let item = i.trim();
+                    // When adding new items, automatically capitalize the first letter of the first word.
+                    if (item.length > 0) {
+                        item = item.charAt(0).toUpperCase() + item.slice(1);
+                    }
+                    return item;
+                }).filter(i => i !== '');
+                items = items.concat(newItems);
+                itemInput.value = '';
+                saveAndRender("Items added.");
+            }
+        }
+
+        // Delete single item with confirmation
+        async function deleteItem(index) {
+            const confirmed = await showConfirmation("Are you sure you want to delete this item?");
+            if (confirmed) {
+                items.splice(index, 1);
+                saveAndRender("Item deleted.");
+            }
+        }
+
+        // Toggle multi-delete mode
+        function toggleMultiDeleteMode() {
+            isInMultiDeleteMode = !isInMultiDeleteMode;
+            document.body.classList.toggle('delete-mode', isInMultiDeleteMode); // Apply class to body
+
+            multiDeleteToggleBtn.style.display = isInMultiDeleteMode ? 'none' : 'block';
+            multiDeleteControls.style.display = isInMultiDeleteMode ? 'flex' : 'none'; // Changed to 'flex'
+
+            renderList(); // Re-render to show/hide checkboxes and buttons
+        }
+
+        // Confirm deletion of multiple selected items
+        async function confirmMultiDelete() {
+            const selectedCheckboxes = itemList.querySelectorAll('.item-checkbox:checked');
+            const indicesToDelete = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.dataset.index)).sort((a, b) => b - a);
+
+            if (indicesToDelete.length === 0) {
+                showPopup("No items selected for deletion.");
+                return;
+            }
+
+            const confirmed = await showConfirmation(`Are you sure you want to delete ${indicesToDelete.length} item(s)?`);
+
+            if (confirmed) {
+                // Delete items from the highest index to the lowest to avoid index shifting issues
+                indicesToDelete.forEach(index => {
+                    items.splice(index, 1);
+                });
+                saveAndRender(`${indicesToDelete.length} item(s) deleted.`);
+                isInMultiDeleteMode = false; // Exit mode after deletion
+                document.body.classList.remove('delete-mode');
+                multiDeleteToggleBtn.style.display = 'block';
+                multiDeleteControls.style.display = 'none';
+            }
+            renderList(); // Always re-render to reflect changes or revert if cancelled
+        }
+
+        // Cancel multi-delete mode
+        function cancelMultiDeleteMode() {
+            isInMultiDeleteMode = false;
+            document.body.classList.remove('delete-mode');
+            multiDeleteToggleBtn.style.display = 'block';
+            multiDeleteControls.style.display = 'none';
+            renderList(); // Re-render to hide checkboxes
+        }
+
+        // Search and highlight matching item
+        function searchItem() {
+            const query = searchInput.value.trim(); // Get and trim the value
+
+            if (query === '') { // Check if it's empty after trimming
+                showPopup("Search field cannot be empty.");
+                return; // Stop execution
+            }
+
+            const listItems = itemList.querySelectorAll('li');
+            let found = false;
+
+            for (let li of listItems) {
+                // Adjusted to handle the item-content span for text
+                const text = li.querySelector('.item-content span').dataset.fullText.toLowerCase(); // Use full text for search
+                if (text.includes(query.toLowerCase())) { // Ensure query is also lowercased
+                    li.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    li.style.backgroundColor = '#ffeeba';
+                    setTimeout(() => li.style.backgroundColor = '#e9ecef', 2000);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) showPopup("Item not found.");
+            searchInput.value = '';
+        }
+
+        // Export the list to CSV
+        function downloadCSV() {
+            const csv = 'S.No.,Item Name\n' + items.map((name, i) => `${i + 1},"${name.replace(/"/g, '""')}"`).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'preference_list.csv';
+            link.click();
+            showPopup("CSV downloaded.");
+        }
+
+        // Save items to localStorage and refresh UI
+        function saveAndRender(message) {
+            localStorage.setItem('items', JSON.stringify(items));
+            renderList();
+            if (message) showPopup(message);
+        }
+
+        // Function to handle auto-scrolling
+        function autoScroll(event) {
+            const buffer = 80; // Pixels from the edge to start scrolling
+            const scrollSpeed = 10; // Pixels per interval
+
+            let clientY = event.clientY;
+            if (event.touches && event.touches.length > 0) {
+                clientY = event.touches[0].clientY;
+            }
+
+            if (clientY < buffer) {
+                if (!scrollInterval) {
+                    scrollInterval = setInterval(() => window.scrollBy(0, -scrollSpeed), 20);
+                }
+            } else if (clientY > window.innerHeight - buffer) {
+                if (!scrollInterval) {
+                    scrollInterval = setInterval(() => window.scrollBy(0, 10), 20);
+                }
+            } else {
+                if (scrollInterval) {
+                    clearInterval(scrollInterval);
+                    scrollInterval = null;
+                }
+            }
+        }
+
+        // Render the item list in the DOM
+        function renderList() {
+            // --- BUG FIX START ---
+            // 1. Capture selected checkbox states before clearing the list
+            const selectedIndices = new Set();
+            if (isInMultiDeleteMode) { // Only capture if in delete mode
+                itemList.querySelectorAll('.item-checkbox:checked').forEach(checkbox => {
+                    selectedIndices.add(parseInt(checkbox.dataset.index));
+                });
+            }
+            // --- BUG FIX END ---
+
+            itemList.innerHTML = '';
+
+            // --- New logic for empty list message ---
+            if (items.length === 0) {
+                const noItemsMessage = document.createElement('p');
+                noItemsMessage.textContent = 'There are no items to be displayed. Kindly consider adding your first item to begin.';
+                noItemsMessage.style.textAlign = 'center';
+                noItemsMessage.style.marginTop = '20px';
+                noItemsMessage.style.fontSize = '1.1em';
+                noItemsMessage.style.color = '#555';
+                itemList.appendChild(noItemsMessage);
+                return; // Exit the function if there are no items to render
+            }
+            // --- End new logic ---
+
+            const mobileView = isMobileView();
+            const charLimit = mobileView ? 20 : 26; // Set character limit based on device
+
+            items.forEach((item, index) => {
+                const li = document.createElement('li');
+
+                // Create the drag handle
+                const dragHandle = document.createElement('div');
+                dragHandle.className = 'drag-handle';
+
+                // Create the three lines icon using nested divs
+                const linesIcon = document.createElement('div');
+                linesIcon.className = 'lines-icon';
+                for (let i = 0; i < 3; i++) {
+                    const line = document.createElement('div');
+                    line.className = 'line';
+                    linesIcon.appendChild(line);
+                }
+                dragHandle.appendChild(linesIcon);
+
+
+                // Checkbox for multi-delete mode
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'item-checkbox';
+                checkbox.dataset.index = index; // Store original index for deletion
+
+                // --- BUG FIX START ---
+                // Reapply the checked state based on captured indices
+                if (isInMultiDeleteMode && selectedIndices.has(index)) {
+                    checkbox.checked = true;
+                }
+                // --- BUG FIX END ---
+
+                const span = document.createElement('span');
+                // Store full text in a data attribute
+                span.dataset.fullText = item;
+
+                // Truncate text for display
+                const displayText = item.length > charLimit ? item.substring(0, charLimit) + '...' : item;
+                span.textContent = `${index + 1}. ${displayText}`;
+
+
+                // Wrapper for checkbox, drag handle, and text
+                const itemContent = document.createElement('div');
+                itemContent.className = 'item-content';
+
+                // Append drag handle first, then checkbox and text
+                if (mobileView) {
+                    itemContent.appendChild(dragHandle);
+                }
+                itemContent.appendChild(checkbox);
+                itemContent.appendChild(span);
+
+                // Click on item-content to toggle checkbox (only in delete mode)
+                // or open full text popup
+                itemContent.addEventListener('click', (e) => {
+                    // Prevent toggling if the click target itself is the checkbox or a button
+                    if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') {
+                        return;
+                    }
+                    // Prevent toggling if click is on drag handle area
+                    if (e.target.closest('.drag-handle')) {
+                        return;
+                    }
+
+                    if (isInMultiDeleteMode) {
+                        checkbox.checked = !checkbox.checked;
+                    } else {
+                        // If not in multi-delete mode, show full text popup
+                        openFullTextModal(span.dataset.fullText);
+                    }
+                });
+
+                // Edit button
+                const editBtn = document.createElement('button');
+                editBtn.className = 'edit-btn';
+                editBtn.innerHTML = '✏️';
+                editBtn.onclick = e => {
+                    e.stopPropagation();
+                    openEditModal(index, item);
+                };
+
+                // Delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '&times;';
+                deleteBtn.onclick = e => {
+                    e.stopPropagation();
+                    deleteItem(index); // Call the new deleteItem function with confirmation
+                };
+
+                // Append buttons to container
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'btn-group';
+                btnGroup.appendChild(editBtn);
+                btnGroup.appendChild(deleteBtn);
+
+                // Finalize list item
+                li.appendChild(itemContent); // Add the wrapper
+                li.appendChild(btnGroup);
+
+                // --- Drag-and-drop logic based on view ---
+                if (!mobileView) {
+                    // Desktop: Whole li is draggable
+                    li.draggable = true;
+                    li.addEventListener('dragstart', (e) => {
+                        if (isInMultiDeleteMode) {
+                            e.preventDefault();
+                            return;
+                        }
+                        draggedEl = li;
+                        isMouseDragging = true;
+                        li.classList.add('dragging');
+                        document.addEventListener('dragover', autoScroll);
+                    });
+
+                    li.addEventListener('dragend', () => {
+                        if (!isMouseDragging) return;
+                        li.classList.remove('dragging');
+                        updateOrderFromDOM();
+                        isMouseDragging = false;
+                        if (scrollInterval) {
+                            clearInterval(scrollInterval);
+                            scrollInterval = null;
+                        }
+                        document.removeEventListener('dragover', autoScroll);
+                    });
+
+                    li.addEventListener('dragover', (e) => {
+                        if (isInMultiDeleteMode) return;
+                        e.preventDefault();
+                        const bounding = li.getBoundingClientRect();
+                        const offset = e.clientY - bounding.top - bounding.height / 2;
+                        itemList.insertBefore(draggedEl, offset > 0 ? li.nextSibling : li);
+                    });
+
+                } else {
+                    // Mobile: Only drag handle is draggable
+                    li.draggable = false; // Ensure the list item itself is not draggable
+                    dragHandle.draggable = true; // Make the handle draggable
+
+                    dragHandle.addEventListener('touchstart', e => {
+                        if (isInMultiDeleteMode) {
+                            e.preventDefault(); // Prevent drag if in multi-delete mode
+                            return;
+                        }
+                        // Prevent default scrolling only if the touch is explicitly for drag
+                        if (e.target === dragHandle || e.target.closest('.drag-handle')) { // Check if the touch is on the handle or its children
+                            e.preventDefault();
+                        }
+                        draggedEl = li; // Set the parent li as the dragged element
+                        isTouchDragging = true;
+                        li.classList.add('dragging');
+                    });
+
+                    // Touchmove listener should be on the list item for consistent behavior
+                    li.addEventListener('touchmove', e => {
+                        if (!isTouchDragging || isInMultiDeleteMode) return;
+                        // Prevent native scroll only if we are actively dragging
+                        if (draggedEl === li) { // Only prevent default if this li is the one being dragged
+                           e.preventDefault();
+                        }
+
+                        const touch = e.touches[0];
+                        const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                        const overLi = target?.closest('li');
+
+                        if (overLi && overLi !== draggedEl && overLi.parentNode === itemList) {
+                            const rect = overLi.getBoundingClientRect();
+                            const middle = rect.top + rect.height / 2;
+                            itemList.insertBefore(draggedEl, touch.clientY > middle ? overLi.nextSibling : overLi);
+                        }
+
+                        // Auto-scroll logic on touch
+                        autoScroll(e);
+                    });
+
+                    li.addEventListener('touchend', () => {
+                        if (scrollInterval) {
+                            clearInterval(scrollInterval);
+                            scrollInterval = null;
+                        }
+
+                        // Capture the state of isTouchDragging before resetting it
+                        const wasDragging = isTouchDragging;
+                        
+                        isTouchDragging = false; // Reset for next interaction
+
+                        if (draggedEl) {
+                            draggedEl.classList.remove('dragging');
+                            // Only update order if a drag was initiated and we are not in multi-delete mode
+                            if (wasDragging && !isInMultiDeleteMode) {
+                                updateOrderFromDOM();
+                            }
+                            draggedEl = null; // Clear dragged element
+                        }
+                    });
+                }
+                // --- End Drag-and-drop logic based on view ---
+
+                itemList.appendChild(li);
+            });
+        }
+
+        // Update the item list based on current order in DOM
+        function updateOrderFromDOM() {
+            // Re-map items based on their current order in the DOM
+            // Ensure we get the full text from the data attribute
+            items = Array.from(itemList.children).map(li =>
+                li.querySelector('.item-content span').dataset.fullText
+            );
+            saveAndRender("List reordered.");
+        }
+
+        // --- Tour Guide Logic ---
+        function initializeTourSteps() {
+            tourSteps = [
+                {
+                    title: "Welcome to Preference List Manager!",
+                    description: "This quick tour will show you how to use this app to manage your preference lists efficiently. Click 'Next' to begin!",
+                    element: null // No specific element for welcome
+                },
+                {
+                    title: "Add New Items",
+                    description: "Use this text area to add multiple items. Enter each item on a new line, then click 'Add Items'.",
+                    element: itemInput
+                },
+                {
+                    title: "Action Buttons",
+                    description: "These buttons allow you to add items, download your list as a CSV, or enter a special mode to delete multiple items.",
+                    element: document.querySelector('.action-buttons')
+                },
+                {
+                    title: "Search Your List",
+                    description: "Quickly find items in your list by typing here and clicking 'Search'.",
+                    element: searchInput
+                },
+                {
+                    title: "Manage Individual Items",
+                    description: "Each item in your list has options to edit it (pencil icon) or delete it (X icon). On mobile, click the item text to see the full content.",
+                    element: itemList.querySelector('li') // Select first list item if exists
+                },
+                {
+                    title: "Reorder Your List",
+                    description: "You can easily change the order of your preferences. On desktop, drag and drop any item. On mobile, use the drag handle on the left.",
+                    element: itemList.querySelector('li') // Select first list item if exists
+                },
+                {
+                    title: "Multi-Delete Mode",
+                    description: "When you activate 'Delete Items' mode, checkboxes appear next to each item. Select multiple items and click 'Delete Now' to remove them.",
+                    element: multiDeleteToggleBtn // Point to the button that initiates this mode
+                }
+            ];
+
+            // Filter out steps that point to non-existent elements if the list is empty, etc.
+            tourSteps = tourSteps.filter(step => step.element === null || document.body.contains(step.element));
+        }
+
+        function showTourStep(stepIndex) {
+            // Clear any existing highlights
+            document.querySelectorAll('.highlight-tour').forEach(el => el.classList.remove('highlight-tour'));
+
+            if (stepIndex < 0 || stepIndex >= tourSteps.length) {
+                closeTour();
+                return;
+            }
+
+            currentTourStep = stepIndex;
+            const step = tourSteps[currentTourStep];
+
+            tourGuideTitle.textContent = step.title;
+            tourGuideDescription.textContent = step.description;
+            tourStepIndicator.textContent = `${currentTourStep + 1} of ${tourSteps.length}`;
+
+            // Highlight the element
+            if (step.element) {
+                step.element.classList.add('highlight-tour');
+                // Scroll into view if needed
+                step.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Manage button visibility
+            tourPrevBtn.style.display = currentTourStep === 0 ? 'none' : 'block';
+            tourNextBtn.textContent = currentTourStep === tourSteps.length - 1 ? 'Finish' : 'Next';
+
+            tourGuideOverlay.classList.add('show');
+        }
+
+        function nextTourStep() {
+            showTourStep(currentTourStep + 1);
+        }
+
+        function prevTourStep() {
+            showTourStep(currentTourStep - 1);
+        }
+
+        function closeTour() {
+            tourGuideOverlay.classList.remove('show');
+            localStorage.setItem('hasSeenTour', 'true');
+            // Remove all highlights
+            document.querySelectorAll('.highlight-tour').forEach(el => el.classList.remove('highlight-tour'));
+        }
+
+        // Event Listeners for Tour Guide
+        tourNextBtn.addEventListener('click', nextTourStep);
+        tourPrevBtn.addEventListener('click', prevTourStep);
+        tourSkipBtn.addEventListener('click', closeTour);
+
+
+        // Initial rendering of items from storage
+        renderList();
+        // Re-render on window resize to adjust drag behavior for desktop/mobile
+        window.addEventListener('resize', () => {
+            renderList(); // Re-render to adapt drag handles, etc.
+            // If tour is active, re-highlight current step
+            if (tourGuideOverlay.classList.contains('show')) {
+                showTourStep(currentTourStep); // Re-applies highlight and checks element existence
+            }
+        });
+
+        // Show tour only if it's the first time
+        if (!hasSeenTour) {
+            // Give a small delay to ensure DOM is fully rendered before showing tour and highlighting elements
+            window.addEventListener('load', () => {
+                initializeTourSteps();
+                if (tourSteps.length > 0) {
+                    showTourStep(0);
+                } else {
+                    // If no items, the tour steps for list items might not be valid, skip those.
+                    // Or, initialize with a basic set even if no items exist.
+                    // For now, if tourSteps is empty after filtering, just don't show.
+                }
+            });
+        }
+    </script>
+</body>
+</html>
